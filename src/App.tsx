@@ -7,6 +7,7 @@ import SettingsPage from "./pages/settings";
 import Signup from "./components/auth/signUp";
 import ProfilePage from "./pages/profile";
 import MessagesPage from "./pages/messages";
+import ToolsPage from "./pages/tools";
 function App() {
   return (
     <BrowserRouter>
@@ -21,6 +22,7 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />  
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="tools" element={<ToolsPage />} />
           </Route>
         </Route>
       </Routes>
