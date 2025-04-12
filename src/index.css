@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.rs-picker-default .rs-picker-toggle {
+    z-index: 0 !important;
+}
+.rs-table-header-row-wrapper {
+    z-index: 0 !important;
+}
