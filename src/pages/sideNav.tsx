@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const navItems = [
   { name: "My Profile", path: "/profile" },
@@ -15,6 +15,8 @@ interface SideNavProps {
 }
 
 const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
+  const location = useLocation();
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-20 w-[300px] bg-black shadow-md transform ${
@@ -53,7 +55,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
             </li>
           )}
         </ul>
-        {window.location.pathname === "/profile" && (
+        {location.pathname === "/profile" && (
           <div className="mt-8 ml-4 md:ml-12 ml:pl-24 relative w-full max-w-[276px] h-[400px] md:h-[588px] bg-[#1A1A1A] rounded-lg mx-auto">
             <div className="flex justify-between px-4 py-2">
               <span className="text-[#888888] text-sm md:text-base">Advertisement</span>

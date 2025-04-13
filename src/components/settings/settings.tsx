@@ -42,10 +42,20 @@ const Settings = () => {
         </div>
       </div>
 
+      <div className="mb-8">
+        <h2 className="font-space-grotesk text-base text-white font-normal leading-none">Password Reset</h2>
+        
+        <div className="mb-4 ml-8 mt-8">
+          <div className="relative">
+            <input type="password" placeholder="Your email" className="w-[210px] h-[40px] rounded-[35px] border border-white/20 bg-transparent text-white px-4 py-2 focus:outline-none" />
+            <button className="inset-y-0 flex items-center pointer-events-none bg-[#FF00A2] rounded-[35px] px-8 mt-3 py-2 text-white">Reset</button>
+          </div>
+        </div>
+      </div>
+
       <div>
         <h2 className="font-space-grotesk mt-12 text-base text-white font-normal leading-none">Support & Feedback</h2>
         <div className="flex flex-col gap-1 mt-8 ml-8">
-          <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Contact Support</a>
           <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Report a Bug</a>
           <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Feature Requests</a>
           <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Support & Feedback</a>
