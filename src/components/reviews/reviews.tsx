@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 interface ReviewCardProps {
   name: string;
@@ -8,6 +8,8 @@ interface ReviewCardProps {
 }
 
 const ReviewCard: React.FC<ReviewCardProps> = ({ name, rating, text, isFirstInRow }) => {
+  const [isChecked, setIsChecked] = useState(false);
+
   return (
     <div className={`p-6 rounded-xl relative bg-gradient-to-br from-[#0D0D0D] via-[#0D0D0D]/100 to-[#FF00A2]`}>
       <div className="relative z-10">
@@ -22,7 +24,12 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ name, rating, text, isFirstInRo
               </div>
             </div>
           </div>
-          <button className="w-4 h-4 rounded-full border-[1px] border-white"></button>
+          <button 
+            className={`w-4 h-4 rounded-full border-[1px] border-white flex items-center justify-center ${isChecked ? 'bg-[#FF00A2]' : ''}`}
+            onClick={() => setIsChecked(!isChecked)}
+          >
+            {isChecked && <div className="w-2 h-2 rounded-full bg-white"></div>}
+          </button>
         </div>
         <p className="font-['Space_Grotesk'] font-bold text-[18px] leading-[100%] tracking-[0%] align-middle capitalize text-white/80">
           {text}
@@ -73,11 +80,7 @@ const Reviews = () => {
   ];
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex gap-6">
-        <button className="text-white text-lg opacity-100 border-b-2 border-[#FF00A2]">All Reviews</button>
-        <button className="text-white text-lg opacity-70">Latest Reviews</button>
-      </div>
+    <div className="p-4 md:px-8 py-16 bg-black">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
         {reviews.map((review, index) => (
           <ReviewCard 
