@@ -29,7 +29,7 @@ const Profile = () => {
             className={inputClass}
             {...register("displayName", { required: true })}
           />
-          <div className="absolute right-36 -top-0 -translate-y-1/2 text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase flex items-center gap-2">
+          <div className="absolute md:right-36 right-4 md:-top-0 -top-10 md:-translate-y-1/2 text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase flex items-center gap-2">
             <img src="/profile/edit.svg" alt="Edit" className="w-4 h-4" />
             edit
           </div>
