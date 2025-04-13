@@ -9,6 +9,7 @@ import ProfilePage from "./pages/profile";
 import MessagesPage from "./pages/messages";
 import ToolsPage from "./pages/tools";
 import ReviewsPage from "./pages/reviews";
+import EventsPage from "./pages/events";
 function App() {
   return (
     <BrowserRouter>
@@ -25,6 +26,7 @@ function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="tools" element={<ToolsPage />} />
             <Route path="review" element={<ReviewsPage />} />
+            <Route path="events" element={<EventsPage />} />
           </Route>
         </Route>
       </Routes>
