@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import CreateEvent from './create-event';
 import { Link } from 'react-router-dom';
+import Pagination from '../../common/Pagination';
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('eventRequest');
@@ -123,6 +124,9 @@ const Events = () => {
           ))}
         </div>
       ) : null}
+      <div className='flex  mt-10 justify-center items-center'>
+        <Pagination />
+      </div>
     </div>
   )
 }
