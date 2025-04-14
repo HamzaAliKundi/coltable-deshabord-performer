@@ -31,9 +31,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ name, rating, text, isFirstInRo
             {isChecked && <div className="w-2 h-2 rounded-full bg-white"></div>}
           </button>
         </div>
-        <p className="font-['Space_Grotesk'] font-bold text-[18px] leading-[100%] tracking-[0%] align-middle capitalize text-white/80">
+        <p className="font-['Space_Grotesk'] mt-8 font-normal text-[18px] leading-[100%] tracking-[0%] align-middle capitalize text-white/80">
           {text}
-          <button className="text-pink-500 underline ml-2">Read More</button>
+          <button className="text-white underline ml-2">Read More</button>
         </p>
       </div>
     </div>
