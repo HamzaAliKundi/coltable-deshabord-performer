@@ -4,6 +4,38 @@ import { Link } from 'react-router-dom';
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('eventRequest');
+  const [expandedTitle, setExpandedTitle] = useState<number | null>(null);
+  
+  const events = [
+    {
+      id: 1,
+      title: "Barcelona Food Truck Festival 2018",
+      time: "Start 20:00pm - 22:00pm",
+      location: "Manhattan, New York",
+      image: "/events/event.svg"
+    },
+    {
+      id: 2,
+      title: "Summer Music Festival 2023",
+      time: "Start 18:00pm - 23:00pm",
+      location: "Central Park, New York",
+      image: "/events/event.svg"
+    },
+    {
+      id: 3,
+      title: "Tech Conference 2023",
+      time: "Start 09:00am - 17:00pm",
+      location: "Brooklyn Expo Center",
+      image: "/events/event.svg"
+    },
+    {
+      id: 4,
+      title: "Art Exhibition Night",
+      time: "Start 19:00pm - 22:00pm",
+      location: "Chelsea Gallery District",
+      image: "/events/event.svg"
+    }
+  ];
     
   return (
     <div className="bg-black p-4 md:p-8 w-full mb-32">
@@ -31,9 +63,8 @@ const Events = () => {
             Confirm Request
             {activeTab === 'confirmRequest' && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FF00A2]"></div>}
           </button>
-          
         </div>
-        <div className='absolute -right-4 top-28 md:top-16 lg:top-0'>
+        <div className='absolute -right-4 top-16 lg:top-0'>
             <Link to="/event/create-event">
                 <img src="/events/calendar.svg" alt="calendar" className="w-8 h-8 md:w-auto md:h-auto" />
             </Link>
@@ -44,50 +75,52 @@ const Events = () => {
       {activeTab === 'createEvent' ? (
         <CreateEvent />
       ) : activeTab === 'eventRequest' ? (
-        /* Event Card */
-        <div className="bg-[#212121] mt-20 mg:mt-7 rounded-[8px] overflow-hidden w-full max-w-[600px] flex flex-col md:flex-row">
-          {/* Left side - Image with date badge */}
-          <div className="p-2 md:p-4">
-            <img 
-              src="/events/event.svg" 
-              alt="Festival crowd" 
-              className="w-full h-[250px] md:w-[275px] md:h-[250px] lg:w-[275] lg:h-[300px] rounded-[8px] object-cover"
-            />
-          </div>
-          
-          {/* Right side - Event details */}
-          <div className="flex-1 p-3 md:p-3 flex flex-col">
-            {/* Event title */}
-            <h2 className="text-white font-['Space_Grotesk'] font-bold text-lg md:text-2xl capitalize mb-4 md:mb-0">
-              Barcelona Food Truck Festival 2018
-            </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {events.map((event) => (
+            <div key={event.id} className="bg-[#212121] mt-7 rounded-[8px] overflow-hidden w-full max-w-[300px] flex flex-col">
+              <div className="p-2">
+                <img 
+                  src={event.image} 
+                  alt="Event" 
+                  className="w-full h-[220px] rounded-[8px] object-cover"
+                />
+              </div>
+              
+              <div className="p-3 flex flex-col">
+                <h2 
+                  className="text-white font-['Space_Grotesk'] font-bold text-base capitalize mb-3 cursor-pointer"
+                  onClick={() => setExpandedTitle(expandedTitle === event.id ? null : event.id)}
+                >
+                  {expandedTitle === event.id ? event.title : (event.title.length > 20 ? `${event.title.substring(0, 20)}...` : event.title)}
+                </h2>
 
-            <div className="flex flex-col gap-2 mt-2 md:mt-6 lg:mt-8">
-              <div className="flex items-center gap-2">
-                <img src="/events/time.svg" alt="Time" className="w-5 h-5" />
-                <p className="font-['Space_Grotesk'] font-normal text-base leading-none text-white">Start 20:00pm - 22:00pm</p>
-              </div>
-              <div className="flex items-center gap-2 mt-4">
-                <img src="/events/location.svg" alt="Location" className="w-5 h-5" />
-                <p className="font-['Space_Grotesk'] font-normal text-base leading-none text-white">Manhattan, New York</p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <img src="/events/time.svg" alt="Time" className="w-4 h-4" />
+                    <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">{event.time}</p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <img src="/events/location.svg" alt="Location" className="w-4 h-4" />
+                    <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">{event.location}</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 space-y-2">
+                  <button className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]">
+                    VIEW DETAILS
+                  </button>
+                  <div className="flex gap-2">
+                    <button className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]">
+                      REJECT EVENT
+                    </button>
+                    <button className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]">
+                      ACCEPT EVENT
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            {/* Action buttons */}
-            <div className="mt-6  space-y-2 md:space-y-4">
-              <button className="w-full md:w-[258px] h-[40px] md:h-[51px] bg-[#FF00A2] text-white text-[10px] md:text-base font-medium rounded-[30px]">
-                VIEW DETAILS
-              </button>
-              <div className="flex gap-2 md:gap-3">
-                <button className="w-1/2 md:w-[120px] lg:w-[140px] h-[40px] bg-[#212121] md:h-[48px] lg:h-[52px] md:border-[1px] border-[#FFFFFF] text-white text-[10px] md:text-sm lg:text-base font-normal rounded-[82px]">
-                  REJECT EVENT
-                </button>
-                <button className="w-1/2 md:w-[120px] lg:w-[140px] h-[40px] bg-[#212121] md:h-[48px] lg:h-[52px] md:border-[1px] border-[#FFFFFF] text-white text-[10px] md:text-sm lg:text-base font-normal rounded-[82px]">
-                  ACCEPT EVENT
-                </button>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       ) : null}
     </div>
