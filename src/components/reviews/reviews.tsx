@@ -11,7 +11,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ name, rating, text, isFirstInRo
   const [isChecked, setIsChecked] = useState(false);
 
   return (
-    <div className={`p-6 rounded-xl relative bg-gradient-to-br from-[#0D0D0D] via-[#0D0D0D]/100 to-[#FF00A2]`}>
+    <div className={`p-6 rounded-xl relative bg-gradient-to-r from-[#0D0D0D] to-[#FF00A2]/60`}>
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-4">
           <div className="flex gap-4 items-center">

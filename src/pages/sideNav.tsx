@@ -29,11 +29,13 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
             <li key={item.name}>
               <NavLink
                 to={item.path}
-                className={({ isActive }) =>
-                  `block px-4 py-2 font-['Space_Grotesk'] text-[16px] leading-[100%] align-middle ${
-                    isActive || location.pathname.startsWith(item.path) ? "text-[#FFFFFF]" : "text-[#888888]"
-                  }`
-                }
+                className={({ isActive }) => {
+                  const pathWithoutSlash = item.path.substring(1);
+                  const isPathActive = location.pathname.includes(pathWithoutSlash.replace('s', ''));
+                  return `block px-4 py-2 font-['Space_Grotesk'] text-[16px] leading-[100%] align-middle ${
+                    isActive || isPathActive ? "text-[#FFFFFF]" : "text-[#888888]"
+                  }`;
+                }}
               >
                 {item.name}
               </NavLink>
