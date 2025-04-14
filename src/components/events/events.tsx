@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import CreateEvent from './create-event';
+import { Link } from 'react-router-dom';
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('eventRequest');
@@ -29,21 +31,21 @@ const Events = () => {
             Confirm Request
             {activeTab === 'confirmRequest' && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FF00A2]"></div>}
           </button>
-          <button
-            className={`px-3 md:px-6 py-2 md:py-4 font-bold text-sm md:text-base transition-all duration-300 relative whitespace-nowrap ${activeTab === 'createEvent' ? 'text-white' : 'text-gray-400'}`}
-            onClick={() => setActiveTab('createEvent')}
-          >
-            Create Event
-            {activeTab === 'createEvent' && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FF00A2]"></div>}
-          </button>
+          
         </div>
-        <div className='absolute -right-4 top-16 md:top-16 lg:top-0'>
-            <img src="/events/calendar.svg" alt="calendar" className="w-8 h-8 md:w-auto md:h-auto" />
+        <div className='absolute -right-4 top-28 md:top-16 lg:top-0'>
+            <Link to="/event/create-event">
+                <img src="/events/calendar.svg" alt="calendar" className="w-8 h-8 md:w-auto md:h-auto" />
+            </Link>
         </div>
       </div>
 
-      {/* Event Card */}
-      <div className="bg-[#212121] mt-7 rounded-[8px] overflow-hidden w-full max-w-[600px] flex flex-col md:flex-row">
+      {/* Conditional Rendering Based on Tab */}
+      {activeTab === 'createEvent' ? (
+        <CreateEvent />
+      ) : activeTab === 'eventRequest' ? (
+        /* Event Card */
+        <div className="bg-[#212121] mt-20 mg:mt-7 rounded-[8px] overflow-hidden w-full max-w-[600px] flex flex-col md:flex-row">
           {/* Left side - Image with date badge */}
           <div className="p-2 md:p-4">
             <img 
@@ -87,6 +89,7 @@ const Events = () => {
             </div>
           </div>
         </div>
+      ) : null}
     </div>
   )
 }

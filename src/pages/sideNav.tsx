@@ -31,7 +31,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
                 to={item.path}
                 className={({ isActive }) =>
                   `block px-4 py-2 font-['Space_Grotesk'] text-[16px] leading-[100%] align-middle ${
-                    isActive ? "text-[#FFFFFF]" : "text-[#888888]"
+                    isActive || location.pathname.startsWith(item.path) ? "text-[#FFFFFF]" : "text-[#888888]"
                   }`
                 }
               >
