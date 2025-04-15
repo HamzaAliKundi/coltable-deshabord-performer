@@ -11,6 +11,8 @@ import ToolsPage from "./pages/tools";
 import ReviewsPage from "./pages/reviews";
 import EventsPage from "./pages/events";
 import CreateEvent from "./components/events/create-event";
+import Privacy from './components/privacy';
+import Terms from './components/terms';
 function App() {
   return (
     <BrowserRouter>
@@ -29,6 +31,8 @@ function App() {
             <Route path="review" element={<ReviewsPage />} />
             <Route path="events" element={<EventsPage />} />
             <Route path="event/create-event" element={<CreateEvent />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
           </Route>
         </Route>
       </Routes>

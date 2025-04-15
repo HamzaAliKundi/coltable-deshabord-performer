@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
     return (
       <footer className="bg-[#1D1D1D] text-white py-10 px-8 md:px-20">
@@ -134,6 +136,15 @@ const Footer = () => {
               />
             </div>
             <p className="mt-4 text-sm">Follow Our Instagram</p>
+          </div>
+        </div>
+        <div className="mt-8 py-4">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2">
+            <span className="text-sm">DragSpace, LLC</span>
+            <span className="text-sm">|</span>
+            <Link to="/privacy" className="text-sm hover:text-[#FF00A2] underline">Privacy Policy</Link>
+            <span className="text-sm">|</span>
+            <Link to="/terms" className="text-sm hover:text-[#FF00A2] underline">Terms And Conditions</Link>
           </div>
         </div>
       </footer>
