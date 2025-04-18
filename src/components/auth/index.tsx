@@ -57,7 +57,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         </button>
 
         <h2 className="text-center text-2xl font-bold text-white mb-8 font-['Space_Grotesk']">
-          Hello Again.
+          Login
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

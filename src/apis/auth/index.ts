@@ -1,10 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import axiosInstance from "../axiosInstance";
 
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://coltable-be.onrender.com/api/v1",
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
   }),
   endpoints: (builder) => ({
     login: builder.mutation({
