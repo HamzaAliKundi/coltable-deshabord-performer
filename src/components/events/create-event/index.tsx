@@ -1,6 +1,7 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { useCreateEventMutation } from '../../../apis/events'
+import { toast } from 'react-hot-toast'
 
 interface EventFormData {
   eventName: string
@@ -21,9 +22,11 @@ const CreateEvent = () => {
     console.log(data);
     
     try {
-      await createEvent(data)
+      await createEvent(data).unwrap()
+      toast.success('Event created successfully!')
     } catch (error) {
       console.error('Error creating event:', error)
+      toast.error('Failed to create event. Please try again.')
     }
   }
 
