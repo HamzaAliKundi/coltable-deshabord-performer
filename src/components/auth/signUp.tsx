@@ -4,10 +4,14 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import LoginModal from './index';
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useSignupMutation } from "../../apis/auth";
 
 const Signup = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [signup] = useSignupMutation();
   
   const {
     register,
@@ -17,7 +21,21 @@ const Signup = () => {
 
   const togglePasswordVisibility = () => setPasswordVisible((prev) => !prev);
 
-  const onSubmit = (data: any) => console.log(data);
+  const onSubmit = async (data: any) => {
+    setIsLoading(true);
+    try {
+      const res:any = await signup(data);
+      if(res?.data?.success === true) {
+        toast.success("Signup successful, login Now");
+      } else {
+        toast.error(res?.error?.data?.error);
+      }
+    } catch (error) {
+      toast.error("An error occurred during signup");
+    } finally {
+      setIsLoading(false);
+    }
+  } 
 
   return (
     <>
@@ -80,24 +98,24 @@ const Signup = () => {
                 )}
               </div>
 
-              {/* Phone Number */}
+              {/* Phone */}
               <div>
                 <label
                   className="block text-[#959092] font-['Space_Grotesk'] font-normal text-base mb-2"
-                  htmlFor="phoneNumber"
+                  htmlFor="phone"
                 >
                   Phone Number
                 </label>
                 <input
                   type="tel"
-                  id="phoneNumber"
+                  id="phone"
                   placeholder="your number..."
                   className="w-full h-12 rounded-lg border border-gray-300 px-5 py-3.5 bg-white text-black font-['Space_Grotesk']"
-                  {...register("phoneNumber", { required: true })}
+                  {...register("phone", { required: true })}
                 />
-                {errors.phoneNumber && (
+                {errors.phone && (
                   <span className="text-red-500 text-xs mt-1">
-                    Phone number is required
+                    Phone Number is required
                   </span>
                 )}
               </div>
@@ -242,15 +260,27 @@ const Signup = () => {
                 type="button"
                 className="w-full md:w-64 h-13 rounded-l-full bg-white text-[#FF00A2] py-2.5 px-4 font-['Space_Grotesk']"
                 onClick={() => setIsLoginModalOpen(true)}
+                disabled={isLoading}
               >
                 Login
               </button>
               <button
                 type="submit"
-                className="w-full md:w-64 h-13 rounded-r-full bg-[#FF00A2] text-white py-2.5 px-4 font-['Space_Grotesk']"
+                className="w-full md:w-64 h-13 rounded-r-full bg-[#FF00A2] text-white py-2.5 px-4 font-['Space_Grotesk'] flex items-center justify-center"
                 style={{ backgroundColor: "#FF00A2" }}
+                disabled={isLoading}
               >
-                Sign Up
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing Up...
+                  </>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </div>
 

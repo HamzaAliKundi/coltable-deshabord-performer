@@ -1,25 +1,27 @@
-import { useMutation } from "@tanstack/react-query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import axiosInstance from "../axiosInstance";
-import { LoginCredentials } from "./types";
-import { SignUpCredentials } from "../../types/auth";
 
-const login = async (credentials: LoginCredentials) => {
-  const response = await axiosInstance.post("/auth/login", credentials);
-  return response.data;
-};
-export function useLoginMutation() {
-  return useMutation<any, Error, LoginCredentials>({
-    mutationFn: login,
-  });
-}
+export const authApi = createApi({
+  reducerPath: "authApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "https://coltable-be.onrender.com/api/v1",
+  }),
+  endpoints: (builder) => ({
+    login: builder.mutation({
+      query: (credentials: any) => ({
+        url: "/auth/login",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+    signup: builder.mutation({
+      query: (credentials: any) => ({
+        url: "/auth/register",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+  }),
+});
 
-const signup = async (credentials: SignUpCredentials) => {
-  const response = await axiosInstance.post("/auth/register", credentials);
-  return response.data;
-};
-
-export function useSignUpMutation() {
-  return useMutation<any, Error, SignUpCredentials>({
-    mutationFn: signup,
-  });
-}
+export const { useLoginMutation, useSignupMutation } = authApi;
