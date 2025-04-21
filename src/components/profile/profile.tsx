@@ -725,7 +725,7 @@ const Profile = () => {
           {/* Buttons */}
           {isEditing && (
             <div className="flex flex-row gap-3 justify-center mt-6 md:mt-8">
-              <button
+              {/* <button
                 type="button"
                 onClick={handleSubmit(async (data) => {
                   try {
@@ -744,11 +744,11 @@ const Profile = () => {
                     <span>Saving...</span>
                   </div>
                 ) : 'Save Changes'}
-              </button>
+              </button> */}
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-r-full bg-[#FF00A2] text-white text-sm md:text-base"
+                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-full bg-[#FF00A2] text-white text-sm md:text-base"
               >
                 {isUpdating ? (
                   <div className="flex items-center gap-2">
