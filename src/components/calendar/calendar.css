@@ -1,0 +1,180 @@
+.rbc-calendar {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  min-height: 600px;
+}
+
+.rbc-header {
+  background-color: #2d2d2d;
+  color: #ffffff;
+  padding: 10px;
+  border-bottom: 1px solid #404040;
+}
+
+.rbc-event {
+  background-color: #FF00A2 !important;
+  border: none !important;
+  color: white !important;
+  padding: 2px 5px !important;
+}
+
+.rbc-event.rbc-selected {
+  background-color: #ff1493 !important;
+}
+
+.rbc-today {
+  background-color: #2d2d2d !important;
+}
+
+.rbc-off-range-bg {
+  background-color: #1a1a1a;
+}
+
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: #2d2d2d;
+  border-radius: 8px;
+  gap: 20px;
+}
+
+.rbc-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.rbc-btn-group.view-buttons {
+  margin-left: auto;
+}
+
+.rbc-btn-group button {
+  color: #ffffff;
+  background-color: #404040;
+  border: 1px solid #666;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.rbc-btn-group button:hover {
+  background-color: #FF00A2;
+  border-color: #FF00A2;
+}
+
+.rbc-btn-group button.rbc-active {
+  background-color: #FF00A2;
+  border-color: #FF00A2;
+  color: white;
+}
+
+.rbc-toolbar button.rbc-today-button {
+  color: #ffffff;
+  background-color: #404040;
+  border: 1px solid #666;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rbc-toolbar button.rbc-today-button:hover {
+  background-color: #FF00A2;
+  border-color: #FF00A2;
+}
+
+.rbc-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #2d2d2d;
+  border-color: #404040;
+}
+
+.rbc-toolbar-label {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #ffffff;
+  flex: 1;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.rbc-month-view, .rbc-time-view {
+  border: 1px solid #404040;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #404040;
+}
+
+.rbc-month-row + .rbc-month-row {
+  border-top: 1px solid #404040;
+}
+
+.rbc-time-content {
+  border-top: 1px solid #404040;
+}
+
+.rbc-time-header-content {
+  border-left: 1px solid #404040;
+}
+
+/* Time grid styles for week and day views */
+.rbc-time-view {
+  border: 1px solid #404040;
+  background-color: #1e1e1e;
+}
+
+.rbc-time-header {
+  background-color: #2d2d2d;
+  border-bottom: 1px solid #404040;
+}
+
+.rbc-time-content {
+  border-top: 1px solid #404040;
+}
+
+.rbc-time-slot {
+  color: #ffffff;
+}
+
+.rbc-time-gutter {
+  background-color: #2d2d2d;
+}
+
+/* Agenda view styles */
+.rbc-agenda-view {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.rbc-agenda-empty {
+  color: #ffffff;
+  background-color: #2d2d2d;
+  padding: 20px;
+  text-align: center;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell,
+.rbc-agenda-event-cell {
+  padding: 8px;
+  border-bottom: 1px solid #404040;
+}
+
+/* Time indicator in week/day view */
+.rbc-current-time-indicator {
+  background-color: #FF00A2;
+  height: 2px;
+}
+
+/* All-day events */
+.rbc-allday-cell {
+  background-color: #2d2d2d;
+  border-bottom: 1px solid #404040;
+} 

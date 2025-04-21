@@ -19,11 +19,11 @@ export const eventsApi = createApi({
       }),
     }),
     getPerformerProfile: builder.query({
-      query: (id: string) => `/performer/profile/${id}`,
+      query: () => `/auth/user/get-profile`,
     }),
     updatePerformerProfile: builder.mutation({
-      query: ({ id, data }: { id: string; data: any }) => ({
-        url: `/performer/profile/${id}`,
+      query: ({ data }: { data: any }) => ({
+        url: `auth/user/update-profile`,
         method: "PATCH",
         body: data,
       }),

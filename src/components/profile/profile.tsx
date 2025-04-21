@@ -3,34 +3,166 @@ import Select from 'react-select';
 import { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } from "../../apis/events";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { v2 as cloudinary } from 'cloudinary';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>(Array(4).fill(''));
   const { register, handleSubmit, control, reset } = useForm();
   const performerId = localStorage.getItem("userId") || "";
-  
-  const { data: profileData, isLoading } = useGetPerformerProfileQuery(performerId);
+
   const [updateProfile, { isLoading: isUpdating }] = useUpdatePerformerProfileMutation();
+  const { data: profileData, isLoading } = useGetPerformerProfileQuery();
+
+  console.log("profile data : ", profileData?.user);
+
+  // Add this state for managing image previews
+  const [imagePreviews, setImagePreviews] = useState<string[]>(Array(4).fill(''));
+  
+  const handleImageSelect = async (index: number) => {
+    if (!isEditing) return;
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/gif';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          // First show preview
+          const reader = new FileReader();
+          reader.onload = () => {
+            const newPreviews = [...imagePreviews];
+            newPreviews[index] = reader.result as string;
+            setImagePreviews(newPreviews);
+          };
+          reader.readAsDataURL(file);
+  
+          // Create timestamp for signature
+          const timestamp = Math.round((new Date()).getTime() / 1000).toString();
+          
+          // Create the string to sign
+          const str_to_sign = `timestamp=${timestamp}${import.meta.env.VITE_CLOUDINARY_API_SECRET}`;
+          
+          // Generate SHA-1 signature
+          const signature = await generateSHA1(str_to_sign);
+  
+          // Upload to Cloudinary using signed upload
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY);
+          formData.append('timestamp', timestamp);
+          formData.append('signature', signature);
+          
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+            {
+              method: 'POST',
+              body: formData,
+            }
+          );
+  
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Upload failed');
+          }
+  
+          const data = await response.json();
+          
+          // Store the Cloudinary URL
+          const newUrls = [...imageUrls];
+          newUrls[index] = data.secure_url;
+          setImageUrls(newUrls);
+  
+          toast.success('Image uploaded successfully!');
+        } catch (error) {
+          console.error('Failed to upload image:', error);
+          toast.error('Failed to upload image. Please try again.');
+        }
+      }
+    };
+    
+    input.click();
+  };
+
+  // Add this helper function to generate SHA-1 signature
+  const generateSHA1 = async (message: string) => {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  };
 
   useEffect(() => {
-    if (profileData) reset(profileData);
+    if (profileData?.user) {
+      const formData = {
+        displayName: profileData.user.name,
+        dragName: profileData.user.fullDragName,
+        tagline: profileData.user.tagline,
+        about: profileData.user.description,
+        pronouns: profileData.user.pronoun,
+        city: profileData.user.city,
+        dragAnniversary: profileData.user.dragAnniversary?.split('T')[0], // Format date to YYYY-MM-DD
+        dragMother: profileData.user.dragMotherName,
+        aesthetic: profileData.user.dragPerformerName,
+        competitions: profileData.user.awards?.join(', '),
+        performances: profileData.user.dragPerformances?.map(p => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1).replace('-', ' ') })),
+        illusions: profileData.user.illusions,
+        musicGenres: profileData.user.genres?.map(g => ({ value: g, label: g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ') })),
+        venues: profileData.user.venues?.map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1).replace('-', ' ') })),
+        hosts: profileData.user.hosts?.[0] || '',
+        privateEvents: profileData.user.receivePrivateEventRequests ? 'yes' : 'no',
+        venueMessages: profileData.user.receiveVenueBookingMessages ? 'yes' : 'no',
+        facebook: profileData.user.socialMediaLinks?.facebook || '',
+        instagram: profileData.user.socialMediaLinks?.instagram || '',
+        tiktok: profileData.user.socialMediaLinks?.tiktok || '',
+        youtube: profileData.user.socialMediaLinks?.youtube || ''
+      };
+
+      // Set image previews and URLs if they exist
+      if (profileData.user.images?.length) {
+        setImageUrls(profileData.user.images);
+        setImagePreviews(profileData.user.images);
+      }
+
+      reset(formData);
+    }
   }, [profileData, reset]);
 
   const onSubmit = async (data: any) => {
     try {
-      // Transform the multi-select values to array of strings
       const transformedData = {
-        ...data,
-        // Transform performances array
-        performances: data.performances ? data.performances.map((item: any) => item.value) : [],
-        // Transform music genres array
-        musicGenres: data.musicGenres ? data.musicGenres.map((item: any) => item.value) : [],
-        // Transform venues array
+        name: data.displayName,
+        fullDragName: data.dragName,
+        tagline: data.tagline,
+        description: data.about,
+        pronoun: data.pronouns,
+        city: data.city,
+        dragAnniversary: data.dragAnniversary,
+        dragMotherName: data.dragMother,
+        dragPerformerName: data.aesthetic,
+        awards: data.competitions,
+        dragPerformances: data.performances ? data.performances.map((item: any) => item.value) : [],
+        illusions: data.illusions,
+        genres: data.musicGenres ? data.musicGenres.map((item: any) => item.value) : [],
         venues: data.venues ? data.venues.map((item: any) => item.value) : [],
+        hosts: [data.hosts],
+        receiveVenueBookingMessages: data.venueMessages === "yes",
+        receivePrivateEventRequests: data.privateEvents === "yes",
+        images: imageUrls.filter(url => url !== ''),
+        socialMediaLinks: {
+          facebook: data.facebook,
+          instagram: data.instagram,
+          tiktok: data.tiktok,
+          youtube: data.youtube
+        }
       };
 
-      await updateProfile({ id: performerId, data: transformedData }).unwrap();
-      toast.success('Profile updated successfully!');
+      console.log("transformed data : ", transformedData);
+      await updateProfile({ data: transformedData }).unwrap();
+      toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -494,18 +626,17 @@ const Profile = () => {
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    {...register("privateEvents")}
+                    {...register("venueMessages")}
                     value="yes"
                     disabled={!isEditing}
                     className="mr-2 h-4 w-4 appearance-none rounded-full border-2 border-[#FF00A2] checked:border-[#FF00A2] checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-[#FF00A2] checked:before:m-[2px]"
-                    defaultChecked
                   />
                   <span className="text-lg">Yes</span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    {...register("privateEvents")}
+                    {...register("venueMessages")}
                     value="no"
                     disabled={!isEditing}
                     className="mr-2 h-4 w-4 appearance-none rounded-full border-2 border-[#FF00A2] checked:border-[#FF00A2] checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-[#FF00A2] checked:before:m-[2px]"
@@ -524,18 +655,17 @@ const Profile = () => {
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    {...register("venueMessages")}
+                    {...register("privateEvents")}
                     value="yes"
                     disabled={!isEditing}
                     className="mr-2 h-4 w-4 appearance-none rounded-full border-2 border-[#FF00A2] checked:border-[#FF00A2] checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-[#FF00A2] checked:before:m-[2px]"
-                    defaultChecked
                   />
                   <span className="text-lg">Yes</span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    {...register("venueMessages")}
+                    {...register("privateEvents")}
                     value="no"
                     disabled={!isEditing}
                     className="mr-2 h-4 w-4 appearance-none rounded-full border-2 border-[#FF00A2] checked:border-[#FF00A2] checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-[#FF00A2] checked:before:m-[2px]"
@@ -572,12 +702,21 @@ const Profile = () => {
               Upload JPG, PNG, or GIF Maximum 10 photos & 10 video clips (max 25MB, 1200x800px or larger), no copyrighted or inappropriate content
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-5 md:mt-7">
-              {[1, 2, 3, 4].map((index) => (
+              {[0, 1, 2, 3].map((index) => (
                 <div
                   key={index}
-                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] flex items-center justify-center ${isEditing ? 'cursor-pointer hover:bg-[#1A1A1A] transition-colors' : 'cursor-not-allowed'}`}
+                  onClick={() => handleImageSelect(index)}
+                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:bg-[#1A1A1A] transition-colors' : 'cursor-not-allowed'}`}
                 >
-                  <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+                  {imagePreviews[index] ? (
+                    <img 
+                      src={imagePreviews[index]} 
+                      alt={`Preview ${index + 1}`} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+                  )}
                 </div>
               ))}
             </div>
