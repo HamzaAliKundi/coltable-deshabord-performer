@@ -135,7 +135,7 @@ const Signup = () => {
                     {...register("userType", { required: true })}
                   >
                     <option value="performer">Performer</option>
-                    <option value="venues">Venues</option>
+                    <option value="venue">Venues</option>
                     <option value="users">Users</option>
                   </select>
                   <div className="absolute right-3 top-3.5 pointer-events-none">
