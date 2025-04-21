@@ -11,13 +11,6 @@ export const eventsApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    createEvent: builder.mutation({
-      query: (eventData: any) => ({
-        url: "/performer/create-event",
-        method: "POST",
-        body: eventData,
-      }),
-    }),
     getPerformerProfile: builder.query({
       query: () => `/auth/user/get-profile`,
     }),
@@ -28,7 +21,14 @@ export const eventsApi = createApi({
         body: data,
       }),
     }),
+    addEvent: builder.mutation({
+      query: (eventData: any) => ({
+        url: "/api/performer/event/add-event",
+        method: "POST",
+        body: eventData,
+      }),
+    }),
   }),
 });
 
-export const { useCreateEventMutation, useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } = eventsApi;
+export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useAddEventMutation } = eventsApi;

@@ -1,28 +1,40 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { useCreateEventMutation } from '../../../apis/events'
+import { useAddEventMutation } from '../../../apis/events'
 import { toast } from 'react-hot-toast'
 
 interface EventFormData {
-  eventName: string
-  eventHost: string
-  eventType: string
-  eventTheme: string
-  startTime: string
-  endTime: string
-  overview: string
-  isPublic: boolean
+  title: string
+  host: string
+  type: string
+  theme: string
+  startTime: Date
+  endTime: Date
+  description: string
+  isPrivate: boolean
 }
 
 const CreateEvent = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<EventFormData>()
-  const [createEvent, { isLoading }] = useCreateEventMutation()
+  const [createEvent, { isLoading }] = useAddEventMutation()
 
   const onSubmit = async (data: EventFormData) => {
-    console.log(data);
-    
     try {
-      await createEvent(data).unwrap()
+      const startDate = new Date()
+      const endDate = new Date()
+      const [startHours, startMinutes] = data.startTime.toString().split(':')
+      const [endHours, endMinutes] = data.endTime.toString().split(':')
+      
+      startDate.setHours(parseInt(startHours), parseInt(startMinutes))
+      endDate.setHours(parseInt(endHours), parseInt(endMinutes))
+      
+      const formattedData = {
+        ...data,
+        startTime: startDate,
+        endTime: endDate
+      }
+
+      await createEvent(formattedData).unwrap()
       toast.success('Event created successfully!')
     } catch (error) {
       console.error('Error creating event:', error)
@@ -39,27 +51,27 @@ const CreateEvent = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
-              Event Name*
+              Event Title*
             </label>
             <input 
-              {...register('eventName', { required: true })}
+              {...register('title', { required: true })}
               type="text"
-              placeholder="Event Name..."
+              placeholder="Event Title..."
               className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
             />
-            {errors.eventName && <span className="text-red-500">Event name is required</span>}
+            {errors.title && <span className="text-red-500">Event title is required</span>}
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Host*
             </label>
             <input 
-              {...register('eventHost', { required: true })}
+              {...register('host', { required: true })}
               type="text"
               placeholder="Event Host Name..."
               className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
             />
-            {errors.eventHost && <span className="text-red-500">Event host is required</span>}
+            {errors.host && <span className="text-red-500">Event host is required</span>}
           </div>
         </div>
 
@@ -68,14 +80,14 @@ const CreateEvent = () => {
             Event type*
           </label>
           <select 
-            {...register('eventType', { required: true })}
+            {...register('type', { required: true })}
             className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500 appearance-none"
           >
             <option value="drag-show">Drag show</option>
-            <option value="comedy">Comedy Show</option>
-            <option value="music">Music Concert</option>
-            <option value="dance">Dance Performance</option>
-            <option value="theater">Theater Show</option>
+            <option value="comedy-show">Comedy Show</option>
+            <option value="music-concert">Music Concert</option>
+            <option value="dance-performance">Dance Performance</option>
+            <option value="theater-show">Theater Show</option>
             <option value="other">Other</option>
           </select>
           <div className="absolute right-3 top-[45px] pointer-events-none">
@@ -83,7 +95,7 @@ const CreateEvent = () => {
               <path d="M4 6L8 10L12 6" stroke="#878787" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          {errors.eventType && <span className="text-red-500">Event type is required</span>}
+          {errors.type && <span className="text-red-500">Event type is required</span>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,12 +104,12 @@ const CreateEvent = () => {
               Event Theme*
             </label>
             <input 
-              {...register('eventTheme', { required: true })}
+              {...register('theme', { required: true })}
               type="text"
               placeholder="Event Theme..."
               className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
             />
-            {errors.eventTheme && <span className="text-red-500">Event theme is required</span>}
+            {errors.theme && <span className="text-red-500">Event theme is required</span>}
           </div>
         </div>
 
@@ -130,24 +142,24 @@ const CreateEvent = () => {
 
         <div className="flex flex-col gap-2">
           <label className="text-white font-space-grotesk text-sm md:text-base">
-            Over view for event details*
+            Description*
           </label>
           <textarea 
-            {...register('overview', { required: true })}
+            {...register('description', { required: true })}
             placeholder="Type..."
             rows={6}
             className="w-full bg-[#0D0D0D] rounded-lg p-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
           />
-          {errors.overview && <span className="text-red-500">Overview is required</span>}
+          {errors.description && <span className="text-red-500">Description is required</span>}
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
               <input 
-                {...register('isPublic', { required: true })}
+                {...register('isPrivate', { required: true })}
                 type="radio" 
-                value="true"
+                value="false"
                 defaultChecked
                 className="appearance-none w-5 h-5 rounded-full border-2 border-white checked:border-white checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-white checked:before:m-[4px]"
               />
@@ -157,16 +169,16 @@ const CreateEvent = () => {
           <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
               <input 
-                {...register('isPublic', { required: true })}
+                {...register('isPrivate', { required: true })}
                 type="radio" 
-                value="false"
+                value="true"
                 className="appearance-none w-5 h-5 rounded-full border-2 border-white checked:border-white checked:before:content-[''] checked:before:block checked:before:w-2 checked:before:h-2 checked:before:rounded-full checked:before:bg-white checked:before:m-[4px]"
               />
             </div>
             <span className="text-white font-space-grotesk text-sm md:text-base">Private Event</span>
           </label>
         </div>
-        {errors.isPublic && <span className="text-red-500">Please select event type</span>}
+        {errors.isPrivate && <span className="text-red-500">Please select event type</span>}
         <button 
           type="submit"
           disabled={isLoading}
