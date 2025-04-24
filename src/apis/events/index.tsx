@@ -31,4 +31,8 @@ export const eventsApi = createApi({
   }),
 });
 
-export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useAddEventMutation } = eventsApi;
+export const {
+  useGetPerformerProfileQuery,
+  useUpdatePerformerProfileMutation,
+  useAddEventMutation,
+} = eventsApi;
