@@ -1,6 +1,6 @@
 import { Controller, useForm } from "react-hook-form";
 import Select from 'react-select';
-import { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } from "../../apis/events";
+import { useGetAllVenuesQuery, useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } from "../../apis/profile";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { v2 as cloudinary } from 'cloudinary';
@@ -14,10 +14,8 @@ const Profile = () => {
 
   const [updateProfile, { isLoading: isUpdating }] = useUpdatePerformerProfileMutation();
   const { data: profileData, isLoading } = useGetPerformerProfileQuery();
+  const { data: venuesData } = useGetAllVenuesQuery();
 
-  console.log("profile data : ", profileData?.user);
-
-  // Add this state for managing image previews
   const [imagePreviews, setImagePreviews] = useState<string[]>(Array(4).fill(''));
   
   const handleImageSelect = async (index: number) => {
@@ -87,7 +85,6 @@ const Profile = () => {
     input.click();
   };
 
-  // Add this helper function to generate SHA-1 signature
   const generateSHA1 = async (message: string) => {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
@@ -119,7 +116,10 @@ const Profile = () => {
         illusions: profileData.user.illusions,
         musicGenres: profileData.user.genres?.map(g => ({ value: g, label: g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ') })),
         venues: profileData.user.venues?.map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1).replace('-', ' ') })),
-        hosts: profileData.user.hosts?.[0] || '',
+        hosts: profileData.user.hosts?.map(hostId => {
+          const venue = venuesData?.find(v => v._id === hostId);
+          return venue ? { value: venue._id, label: venue.name } : null;
+        }).filter(Boolean) || [],
         privateEvents: profileData.user.receivePrivateEventRequests ? 'yes' : 'no',
         venueMessages: profileData.user.receiveVenueBookingMessages ? 'yes' : 'no',
         facebook: profileData.user.socialMediaLinks?.facebook || '',
@@ -136,7 +136,7 @@ const Profile = () => {
 
       reset(formData);
     }
-  }, [profileData, reset]);
+  }, [profileData, reset, venuesData]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -155,7 +155,7 @@ const Profile = () => {
         illusions: data.illusions,
         genres: data.musicGenres ? data.musicGenres.map((item: any) => item.value) : [],
         venues: data.venues ? data.venues.map((item: any) => item.value) : [],
-        hosts: [data.hosts],
+        hosts: data.hosts?.map((host: any) => host.value) || [],
         receiveVenueBookingMessages: data.venueMessages === "yes",
         receivePrivateEventRequests: data.privateEvents === "yes",
         images: imageUrls.filter(url => url !== ''),
@@ -654,20 +654,75 @@ const Profile = () => {
           {/* Hosts */}
           <div className="relative">
             <label className={labelClass}>Hosts/Hostesses/Showrunners that you have worked with!</label>
-            <select
-              className={`${inputClass} appearance-none`}
-              disabled={!isEditing}
-              {...register("hosts")}
-            >
-              <option value="host1">Host 1</option>
-              <option value="host2">Host 2</option>
-              <option value="host3">Host 3</option>
-            </select>
-            <div className="absolute xl:right-4 lg:right-4 right-4 top-[44px] md:top-[36px] pointer-events-none text-[#383838]">
-              <svg width="20px" height="30px" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
+            <Controller
+              name="hosts"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  isMulti
+                  isDisabled={!isEditing}
+                  options={venuesData?.map(venue => ({
+                    value: venue._id,
+                    label: venue.name
+                  })) || []}
+                  className="w-full max-w-[782px]"
+                  placeholder="Select venues you've worked with"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "46px",
+                      background: "#0D0D0D",
+                      border: "1px solid #383838",
+                      borderRadius: "16px",
+                      boxShadow: "none",
+                      "&:hover": {
+                        border: "1px solid #383838",
+                      },
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "#1D1D1D",
+                      border: "1px solid #383838",
+                      borderRadius: "4px",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      background: state.isFocused ? "#383838" : "#1D1D1D",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      background: "#383838",
+                      borderRadius: "4px",
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: "#fff",
+                      ":hover": {
+                        background: "#4a4a4a",
+                        borderRadius: "0 4px 4px 0",
+                      },
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "#383838",
+                    }),
+                  }}
+                />
+              )}
+            />
           </div>
 
           {/* Booking Preferences */}

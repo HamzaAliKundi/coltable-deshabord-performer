@@ -1,6 +1,6 @@
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { useAddEventMutation } from '../../../apis/events'
+import { useAddEventMutation } from '../../../apis/profile'
 import { toast } from 'react-hot-toast'
 
 interface EventFormData {

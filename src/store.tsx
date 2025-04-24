@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authApi } from './apis/auth';
-import { eventsApi } from './apis/events';
+import { eventsApi } from './apis/profile';
 
 export const store = configureStore({
   reducer: {

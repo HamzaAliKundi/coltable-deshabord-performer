@@ -28,7 +28,10 @@ export const eventsApi = createApi({
         body: eventData,
       }),
     }),
+    getAllVenues: builder.query({
+      query: () => "/api/performer/venue/get-all-venues",
+    }),
   }),
 });
 
-export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useAddEventMutation } = eventsApi;
+export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useAddEventMutation, useGetAllVenuesQuery } = eventsApi;
