@@ -4,6 +4,7 @@ import { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } from "
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { v2 as cloudinary } from 'cloudinary';
+import { cityOptions } from '../../utils/city';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -103,7 +104,13 @@ const Profile = () => {
         tagline: profileData.user.tagline,
         about: profileData.user.description,
         pronouns: profileData.user.pronoun,
-        city: profileData.user.city,
+        city: profileData.user.city ? (
+          cityOptions.find(city => city.label === profileData.user.city) ?? 
+          { 
+            value: profileData.user.city.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 
+            label: profileData.user.city 
+          }
+        ) : null,
         dragAnniversary: profileData.user.dragAnniversary?.split('T')[0], // Format date to YYYY-MM-DD
         dragMother: profileData.user.dragMotherName,
         aesthetic: profileData.user.dragPerformerName,
@@ -139,7 +146,7 @@ const Profile = () => {
         tagline: data.tagline,
         description: data.about,
         pronoun: data.pronouns,
-        city: data.city,
+        city: data.city?.label || '',
         dragAnniversary: data.dragAnniversary,
         dragMotherName: data.dragMother,
         dragPerformerName: data.aesthetic,
@@ -256,16 +263,64 @@ const Profile = () => {
           {/* City */}
           <div className="relative">
             <label className={labelClass}>City/Metropolitan Area*</label>
-            <input
-              type="text"
-              placeholder="Enter your city"
-              className={inputClass}
-              disabled={!isEditing}
-              {...register("city", { required: true })}
+            <Controller
+              name="city"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  isDisabled={!isEditing}
+                  options={cityOptions}
+                  className="w-full max-w-[782px]"
+                  placeholder="Search for your city"
+                  isClearable
+                  isSearchable
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "46px",
+                      background: "#0D0D0D",
+                      border: "1px solid #383838",
+                      borderRadius: "16px",
+                      boxShadow: "none",
+                      "&:hover": {
+                        border: "1px solid #383838",
+                      },
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "#1D1D1D",
+                      border: "1px solid #383838",
+                      borderRadius: "4px",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      background: state.isFocused ? "#383838" : "#1D1D1D",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "#383838",
+                    }),
+                  }}
+                />
+              )}
             />
-            <div className="absolute xl:right-4 lg:right-4 right-4 top-[36px] md:top-[40px] pointer-events-none text-[#383838]">
+            {/* <div className="absolute xl:right-4 lg:right-4 right-4 top-[36px] md:top-[40px] pointer-events-none text-[#383838]">
               <img src="/profile/location.svg" alt="location" />
-            </div>
+            </div> */}
           </div>
 
           {/* Drag Anniversary */}
@@ -725,26 +780,6 @@ const Profile = () => {
           {/* Buttons */}
           {isEditing && (
             <div className="flex flex-row gap-3 justify-center mt-6 md:mt-8">
-              {/* <button
-                type="button"
-                onClick={handleSubmit(async (data) => {
-                  try {
-                    await updateProfile({ id: performerId, data }).unwrap();
-                    setIsEditing(false);
-                  } catch (error) {
-                    console.error('Failed to save changes:', error);
-                  }
-                })}
-                disabled={isUpdating}
-                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-l-full border border-[#FF00A2] text-[#FF00A2] text-sm md:text-base"
-              >
-                {isUpdating ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving...</span>
-                  </div>
-                ) : 'Save Changes'}
-              </button> */}
               <button
                 type="submit"
                 disabled={isUpdating}
