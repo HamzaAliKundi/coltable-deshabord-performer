@@ -305,7 +305,7 @@ const Profile = () => {
               disabled={!isEditing}
               {...register("aesthetic")}
             />
-            <span className="absolute md:bottom-2 md:right-64 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
+            <span className="absolute md:bottom-2 md:right-4 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
               ( 150 characters)
             </span>
           </div>
