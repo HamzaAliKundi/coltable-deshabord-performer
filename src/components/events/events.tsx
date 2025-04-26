@@ -3,7 +3,7 @@ import CreateEvent from './create-event';
 import { Link } from 'react-router-dom';
 import Pagination from '../../common/Pagination';
 
-const Events = () => {
+  const Events = ({ eventss, isLoading }: { events: any, isLoading: boolean }) => {
   const [activeTab, setActiveTab] = useState('eventRequest');
   const [expandedTitle, setExpandedTitle] = useState<number | null>(null);
   

@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export const eventsApi = createApi({
-  reducerPath: "eventsApi",
+export const profileApi = createApi({
+  reducerPath: "profileApi",
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers) => {
@@ -21,17 +21,10 @@ export const eventsApi = createApi({
         body: data,
       }),
     }),
-    addEvent: builder.mutation({
-      query: (eventData: any) => ({
-        url: "/api/performer/event/add-event",
-        method: "POST",
-        body: eventData,
-      }),
-    }),
     getAllVenues: builder.query({
       query: () => "/api/performer/venue/get-all-venues",
     }),
   }),
 });
 
-export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useAddEventMutation, useGetAllVenuesQuery } = eventsApi;
+export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useGetAllVenuesQuery } = profileApi;

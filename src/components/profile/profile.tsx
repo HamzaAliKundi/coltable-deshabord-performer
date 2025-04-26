@@ -112,12 +112,12 @@ const Profile = () => {
         dragMother: profileData.user.dragMotherName,
         aesthetic: profileData.user.dragPerformerName,
         competitions: profileData.user.awards?.join(', '),
-        performances: profileData.user.dragPerformances?.map(p => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1).replace('-', ' ') })),
+        performances: profileData.user.dragPerformances?.map((p: any) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1).replace('-', ' ') })),
         illusions: profileData.user.illusions,
-        musicGenres: profileData.user.genres?.map(g => ({ value: g, label: g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ') })),
-        venues: profileData.user.venues?.map(v => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1).replace('-', ' ') })),
-        hosts: profileData.user.hosts?.map(hostId => {
-          const venue = venuesData?.find(v => v._id === hostId);
+        musicGenres: profileData.user.genres?.map((g: any) => ({ value: g, label: g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ') })),
+        venues: profileData.user.venues?.map((v: any) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1).replace('-', ' ') })),
+        hosts: profileData.user.hosts?.map((hostId: any) => {
+          const venue = venuesData?.find((v: any) => v._id === hostId);
           return venue ? { value: venue._id, label: venue.name } : null;
         }).filter(Boolean) || [],
         privateEvents: profileData.user.receivePrivateEventRequests ? 'yes' : 'no',
@@ -662,7 +662,7 @@ const Profile = () => {
                   {...field}
                   isMulti
                   isDisabled={!isEditing}
-                  options={venuesData?.map(venue => ({
+                  options={venuesData?.map((venue: any) => ({
                     value: venue._id,
                     label: venue.name
                   })) || []}
