@@ -242,14 +242,19 @@ const Profile = () => {
         youtube: profileData.user.socialMediaLinks?.youtube || "",
       };
 
-   
-
+      // Set images and videos from user data
       if (profileData.user.images) {
-        setImages([...profileData.user.images]);
+        const imagePreviews = profileData.user.images.map((url: string) => url);
+        setImages(imagePreviews);
+        setMediaPreviews(imagePreviews);
       }
+      
       if (profileData.user.videos) {
-        setVideos([...profileData.user.videos]);
+        const videoPreviews = profileData.user.videos.map((url: string) => ({ url, type: "video" }));
+        setVideos(profileData.user.videos);
+        setMediaPreviews(prev => [...prev, ...videoPreviews]);
       }
+
       if (profileData.user.profilePhoto) {
         setLogoUrl(profileData.user.profilePhoto);
         setLogoPreview(profileData.user.profilePhoto);
