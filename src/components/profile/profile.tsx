@@ -8,9 +8,23 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { v2 as cloudinary } from "cloudinary";
 
+interface MediaItem {
+  url: string;
+  type: "image" | "video";
+}
+
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>(Array(4).fill(""));
+  const [mediaUrls, setMediaUrls] = useState<(MediaItem | string)[]>(
+    Array(10).fill("")
+  );
+
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [images, setImages] = useState<string[]>(Array(10).fill(""));
+  const [videos, setVideos] = useState<string[]>(Array(10).fill(""));
+
   const { register, handleSubmit, control, reset } = useForm();
   const performerId = localStorage.getItem("userId") || "";
 
@@ -18,14 +32,12 @@ const Profile = () => {
     useUpdatePerformerProfileMutation();
   const { data: profileData, isLoading } = useGetPerformerProfileQuery();
 
-  console.log("profile data : ", profileData?.user);
-
-  // Add this state for managing image previews
-  const [imagePreviews, setImagePreviews] = useState<string[]>(
+  // State for managing media previews
+  const [mediaPreviews, setMediaPreviews] = useState<(MediaItem | string)[]>(
     Array(4).fill("")
   );
 
-  const handleImageSelect = async (index: number) => {
+  const handleLogoUpload = async () => {
     if (!isEditing) return;
 
     const input = document.createElement("input");
@@ -36,12 +48,11 @@ const Profile = () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
+          setLogoUploading(true);
           // First show preview
           const reader = new FileReader();
           reader.onload = () => {
-            const newPreviews = [...imagePreviews];
-            newPreviews[index] = reader.result as string;
-            setImagePreviews(newPreviews);
+            setLogoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
 
@@ -79,16 +90,13 @@ const Profile = () => {
           }
 
           const data = await response.json();
-
-          // Store the Cloudinary URL
-          const newUrls = [...imageUrls];
-          newUrls[index] = data.secure_url;
-          setImageUrls(newUrls);
-
-          toast.success("Image uploaded successfully!");
+          setLogoUrl(data.secure_url);
+          toast.success("Logo uploaded successfully!");
         } catch (error) {
-          console.error("Failed to upload image:", error);
-          toast.error("Failed to upload image. Please try again.");
+          console.error("Failed to upload logo:", error);
+          toast.error("Failed to upload logo. Please try again.");
+        } finally {
+          setLogoUploading(false); // Upload complete
         }
       }
     };
@@ -96,7 +104,96 @@ const Profile = () => {
     input.click();
   };
 
-  // Add this helper function to generate SHA-1 signature
+  const handleMediaSelect = async (index: number) => {
+    if (!isEditing) return;
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/gif,video/mp4,video/quicktime";
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        // First show preview
+        const previewUrl = URL.createObjectURL(file);
+        const isVideo = file.type.startsWith("video/");
+
+        const newPreviews = [...mediaPreviews];
+        newPreviews[index] = isVideo
+          ? { url: previewUrl, type: "video" }
+          : previewUrl;
+        setMediaPreviews(newPreviews);
+
+        // Create timestamp for signature
+        const timestamp = Math.round(new Date().getTime() / 1000).toString();
+
+        // Create the string to sign
+        const str_to_sign = `timestamp=${timestamp}${
+          import.meta.env.VITE_CLOUDINARY_API_SECRET
+        }`;
+
+        // Generate SHA-1 signature
+        const signature = await generateSHA1(str_to_sign);
+
+        // Upload to Cloudinary using signed upload
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+        formData.append("timestamp", timestamp);
+        formData.append("signature", signature);
+
+        // Use different upload endpoints for images vs videos
+        const resourceType = isVideo ? "video" : "image";
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${
+            import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+          }/${resourceType}/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const data = await response.json();
+
+        // Store the Cloudinary URL with type info
+        if (resourceType === "image") {
+          const newImages = [...images];
+          newImages[index] = data.secure_url;
+          setImages(newImages);
+        } else {
+          const newVideos = [...videos];
+          newVideos[index] = data.secure_url;
+          setVideos(newVideos);
+        }
+
+        toast.success(
+          `${
+            resourceType === "image" ? "Image" : "Video"
+          } uploaded successfully!`
+        );
+      } catch (error) {
+        console.error("Failed to upload media:", error);
+        toast.error("Failed to upload media. Please try again.");
+
+        // Reset preview on error
+        const newPreviews = [...mediaPreviews];
+        newPreviews[index] = "";
+        setMediaPreviews(newPreviews);
+      }
+    };
+
+    input.click();
+  };
+
+  // Helper function to generate SHA-1 signature
   const generateSHA1 = async (message: string) => {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest("SHA-1", msgBuffer);
@@ -146,10 +243,17 @@ const Profile = () => {
         youtube: profileData.user.socialMediaLinks?.youtube || "",
       };
 
-      // Set image previews and URLs if they exist
-      if (profileData.user.images?.length) {
-        setImageUrls(profileData.user.images);
-        setImagePreviews(profileData.user.images);
+   
+
+      if (profileData.user.images) {
+        setImages([...profileData.user.images]);
+      }
+      if (profileData.user.videos) {
+        setVideos([...profileData.user.videos]);
+      }
+      if (profileData.user.profilePhoto) {
+        setLogoUrl(profileData.user.profilePhoto);
+        setLogoPreview(profileData.user.profilePhoto);
       }
 
       reset(formData);
@@ -167,7 +271,7 @@ const Profile = () => {
         city: data.city,
         dragAnniversary: data.dragAnniversary,
         dragMotherName: data.dragMother,
-        dragPerformerName: data.aesthetic,
+        dragPerformerName: data.displayName,
         awards: data.competitions,
         dragPerformances: data.performances
           ? data.performances.map((item: any) => item.value)
@@ -180,7 +284,11 @@ const Profile = () => {
         hosts: [data.hosts],
         receiveVenueBookingMessages: data.venueMessages === "yes",
         receivePrivateEventRequests: data.privateEvents === "yes",
-        images: imageUrls.filter((url) => url !== ""),
+      
+        profilePhoto: logoUrl,
+        images: images.filter((url) => url !== ""),
+        videos: videos.filter((url) => url !== ""),
+
         socialMediaLinks: {
           facebook: data.facebook,
           instagram: data.instagram,
@@ -189,7 +297,6 @@ const Profile = () => {
         },
       };
 
-      console.log("transformed data : ", transformedData);
       await updateProfile({ data: transformedData }).unwrap();
       toast.success("Profile updated successfully!");
       setIsEditing(false);
@@ -210,6 +317,64 @@ const Profile = () => {
     "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-[#383838] px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
   const labelClass =
     "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[20px] leading-[100%] capitalize text-white mb-2";
+
+  // Render media preview
+  // Update the renderMediaPreview function in your component
+  const renderMediaPreview = (media: MediaItem | string, index: number) => {
+    if (!media) {
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+        </div>
+      );
+    }
+
+    const isVideo = typeof media === "object" && media.type === "video";
+    const isImage =
+      typeof media === "string" ||
+      (typeof media === "object" && media.type === "image");
+    const url = typeof media === "string" ? media : media.url;
+
+    return (
+      <div className="w-full h-full relative">
+        {isVideo ? (
+          <div className="relative w-full h-full">
+            <video
+              className="w-full h-full object-cover"
+              src={url}
+              controls
+              controlsList="nodownload noremoteplayback noplaybackrate"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {isEditing && (
+              <button
+                className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMediaSelect(index);
+                }}
+              >
+                Change
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <img
+              src={url}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            {isEditing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
+                <span className="text-white text-lg">Click to change</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -776,38 +941,65 @@ const Profile = () => {
 
           <hr className="!my-12 py-0.5 max-w-[900px] text-[#656563]" />
 
+          {/* Upload Logo */}
+          <div className="w-full max-w-[782px] bg-black p-4">
+            <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
+              Upload Logo
+            </h2>
+
+            <div
+              className={`bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center ${
+                isEditing ? "cursor-pointer hover:bg-[#1A1A1A]" : ""
+              }`}
+              onClick={handleLogoUpload}
+            >
+              {logoPreview ? (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={logoPreview}
+                    alt="Venue Logo"
+                    className="w-32 h-32 object-contain mb-4"
+                  />
+                  <p className="text-[#FF00A2]">Click to change logo</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-2">
+                    Please Upload The Venue Logo In PNG Or JPG Format, With A
+                    Recommended Size
+                  </p>
+                  <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-4">
+                    Of [Specify Dimensions, E.G., 500x500px]
+                  </p>
+                  <div className="bg-[#FF00A2] text-black rounded-lg px-8 py-1 inline-block font-['Space_Grotesk'] text-[16px] leading-[100%] tracking-[0%] text-center capitalize">
+                    Upload
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Upload Images/Video */}
           <div className="max-w-[900px] w-full">
             <h2 className="font-['Space_Grotesk'] text-white font-normal text-[24px] md:text-[36px] leading-[100%] capitalize">
               Upload images/video
             </h2>
             <p className="font-['Space_Grotesk'] mt-4 md:mt-6 text-white font-normal text-[12px] md:text-[13px] leading-[120%] md:leading-[100%] align-middle">
-              Upload JPG, PNG, or GIF Maximum 10 photos & 10 video clips (max
-              25MB, 1200x800px or larger), no copyrighted or inappropriate
-              content
+              Upload JPG, PNG, GIF, or MP4. Maximum 10 photos & 10 video clips
+              (max 25MB, 1200x800px or larger for images).
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-5 md:mt-7">
-              {[0, 1, 2, 3].map((index) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
                 <div
                   key={index}
-                  onClick={() => handleImageSelect(index)}
-                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] flex items-center justify-center overflow-hidden ${
+                  onClick={() => handleMediaSelect(index)}
+                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] overflow-hidden ${
                     isEditing
                       ? "cursor-pointer hover:bg-[#1A1A1A] transition-colors"
-                      : "cursor-not-allowed"
+                      : "cursor-default"
                   }`}
                 >
-                  {imagePreviews[index] ? (
-                    <img
-                      src={imagePreviews[index]}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-[#383838] text-2xl md:text-3xl">
-                      +
-                    </span>
-                  )}
+                  {renderMediaPreview(mediaPreviews[index], index)}
                 </div>
               ))}
             </div>
@@ -836,6 +1028,7 @@ const Profile = () => {
                   </div>
                 ) : 'Save Changes'}
               </button> */}
+
               <button
                 type="submit"
                 disabled={isUpdating}
