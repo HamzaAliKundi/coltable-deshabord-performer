@@ -1,95 +1,205 @@
 import { Controller, useForm } from "react-hook-form";
-import Select from 'react-select';
-import { useGetAllVenuesQuery, useGetPerformerProfileQuery, useUpdatePerformerProfileMutation } from "../../apis/profile";
+import Select from "react-select";
+import {
+  useGetPerformerProfileQuery,
+  useUpdatePerformerProfileMutation,
+} from "../../apis/profile";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { v2 as cloudinary } from 'cloudinary';
-import { cityOptions } from '../../utils/city';
+
+interface MediaItem {
+  url: string;
+  type: "image" | "video";
+}
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>(Array(4).fill(''));
+  const [mediaUrls, setMediaUrls] = useState<(MediaItem | string)[]>(
+    Array(10).fill("")
+  );
+
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [images, setImages] = useState<string[]>(Array(10).fill(""));
+  const [videos, setVideos] = useState<string[]>(Array(10).fill(""));
+
   const { register, handleSubmit, control, reset } = useForm();
   const performerId = localStorage.getItem("userId") || "";
 
-  const [updateProfile, { isLoading: isUpdating }] = useUpdatePerformerProfileMutation();
+  const [updateProfile, { isLoading: isUpdating }] =
+    useUpdatePerformerProfileMutation();
   const { data: profileData, isLoading } = useGetPerformerProfileQuery();
-  const { data: venuesData } = useGetAllVenuesQuery();
 
-  const [imagePreviews, setImagePreviews] = useState<string[]>(Array(4).fill(''));
-  
-  const handleImageSelect = async (index: number) => {
+  // State for managing media previews
+  const [mediaPreviews, setMediaPreviews] = useState<(MediaItem | string)[]>(
+    Array(4).fill("")
+  );
+
+  const handleLogoUpload = async () => {
     if (!isEditing) return;
-    
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/jpeg,image/png,image/gif';
-    
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/gif";
+
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
+          setLogoUploading(true);
           // First show preview
           const reader = new FileReader();
           reader.onload = () => {
-            const newPreviews = [...imagePreviews];
-            newPreviews[index] = reader.result as string;
-            setImagePreviews(newPreviews);
+            setLogoPreview(reader.result as string);
           };
           reader.readAsDataURL(file);
-  
+
           // Create timestamp for signature
-          const timestamp = Math.round((new Date()).getTime() / 1000).toString();
-          
+          const timestamp = Math.round(new Date().getTime() / 1000).toString();
+
           // Create the string to sign
-          const str_to_sign = `timestamp=${timestamp}${import.meta.env.VITE_CLOUDINARY_API_SECRET}`;
-          
+          const str_to_sign = `timestamp=${timestamp}${
+            import.meta.env.VITE_CLOUDINARY_API_SECRET
+          }`;
+
           // Generate SHA-1 signature
           const signature = await generateSHA1(str_to_sign);
-  
+
           // Upload to Cloudinary using signed upload
           const formData = new FormData();
-          formData.append('file', file);
-          formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY);
-          formData.append('timestamp', timestamp);
-          formData.append('signature', signature);
-          
+          formData.append("file", file);
+          formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+          formData.append("timestamp", timestamp);
+          formData.append("signature", signature);
+
           const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+            `https://api.cloudinary.com/v1_1/${
+              import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+            }/image/upload`,
             {
-              method: 'POST',
+              method: "POST",
               body: formData,
             }
           );
-  
+
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'Upload failed');
+            throw new Error(errorData.error?.message || "Upload failed");
           }
-  
+
           const data = await response.json();
-          
-          // Store the Cloudinary URL
-          const newUrls = [...imageUrls];
-          newUrls[index] = data.secure_url;
-          setImageUrls(newUrls);
-  
-          toast.success('Image uploaded successfully!');
+          setLogoUrl(data.secure_url);
+          toast.success("Logo uploaded successfully!");
         } catch (error) {
-          console.error('Failed to upload image:', error);
-          toast.error('Failed to upload image. Please try again.');
+          console.error("Failed to upload logo:", error);
+          toast.error("Failed to upload logo. Please try again.");
+        } finally {
+          setLogoUploading(false); // Upload complete
         }
       }
     };
-    
+
     input.click();
   };
 
+  const handleMediaSelect = async (index: number) => {
+    if (!isEditing) return;
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/gif,video/mp4,video/quicktime";
+    input.multiple = false;
+
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        // First show preview
+        const previewUrl = URL.createObjectURL(file);
+        const isVideo = file.type.startsWith("video/");
+
+        const newPreviews = [...mediaPreviews];
+        newPreviews[index] = isVideo
+          ? { url: previewUrl, type: "video" }
+          : previewUrl;
+        setMediaPreviews(newPreviews);
+
+        // Create timestamp for signature
+        const timestamp = Math.round(new Date().getTime() / 1000).toString();
+
+        // Create the string to sign
+        const str_to_sign = `timestamp=${timestamp}${
+          import.meta.env.VITE_CLOUDINARY_API_SECRET
+        }`;
+
+        // Generate SHA-1 signature
+        const signature = await generateSHA1(str_to_sign);
+
+        // Upload to Cloudinary using signed upload
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+        formData.append("timestamp", timestamp);
+        formData.append("signature", signature);
+
+        // Use different upload endpoints for images vs videos
+        const resourceType = isVideo ? "video" : "image";
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${
+            import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+          }/${resourceType}/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Upload failed");
+        }
+
+        const data = await response.json();
+
+        // Store the Cloudinary URL with type info
+        if (resourceType === "image") {
+          const newImages = [...images];
+          newImages[index] = data.secure_url;
+          setImages(newImages);
+        } else {
+          const newVideos = [...videos];
+          newVideos[index] = data.secure_url;
+          setVideos(newVideos);
+        }
+
+        toast.success(
+          `${
+            resourceType === "image" ? "Image" : "Video"
+          } uploaded successfully!`
+        );
+      } catch (error) {
+        console.error("Failed to upload media:", error);
+        toast.error("Failed to upload media. Please try again.");
+
+        // Reset preview on error
+        const newPreviews = [...mediaPreviews];
+        newPreviews[index] = "";
+        setMediaPreviews(newPreviews);
+      }
+    };
+
+    input.click();
+  };
+
+  // Helper function to generate SHA-1 signature
   const generateSHA1 = async (message: string) => {
     const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
     return hashHex;
   };
 
@@ -101,42 +211,53 @@ const Profile = () => {
         tagline: profileData.user.tagline,
         about: profileData.user.description,
         pronouns: profileData.user.pronoun,
-        city: profileData.user.city ? (
-          cityOptions.find(city => city.label === profileData.user.city) ?? 
-          { 
-            value: profileData.user.city.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 
-            label: profileData.user.city 
-          }
-        ) : null,
-        dragAnniversary: profileData.user.dragAnniversary?.split('T')[0], // Format date to YYYY-MM-DD
+        city: profileData.user.city,
+        dragAnniversary: profileData.user.dragAnniversary?.split("T")[0], // Format date to YYYY-MM-DD
         dragMother: profileData.user.dragMotherName,
         aesthetic: profileData.user.dragPerformerName,
-        competitions: profileData.user.awards?.join(', '),
-        performances: profileData.user.dragPerformances?.map((p: any) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1).replace('-', ' ') })),
+        competitions: profileData.user.awards?.join(", "),
+        performances: profileData.user.dragPerformances?.map((p: any) => ({
+          value: p,
+          label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
+        })),
         illusions: profileData.user.illusions,
-        musicGenres: profileData.user.genres?.map((g: any) => ({ value: g, label: g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ') })),
-        venues: profileData.user.venues?.map((v: any) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1).replace('-', ' ') })),
-        hosts: profileData.user.hosts?.map((hostId: any) => {
-          const venue = venuesData?.find((v: any) => v._id === hostId);
-          return venue ? { value: venue._id, label: venue.name } : null;
-        }).filter(Boolean) || [],
-        privateEvents: profileData.user.receivePrivateEventRequests ? 'yes' : 'no',
-        venueMessages: profileData.user.receiveVenueBookingMessages ? 'yes' : 'no',
-        facebook: profileData.user.socialMediaLinks?.facebook || '',
-        instagram: profileData.user.socialMediaLinks?.instagram || '',
-        tiktok: profileData.user.socialMediaLinks?.tiktok || '',
-        youtube: profileData.user.socialMediaLinks?.youtube || ''
+        musicGenres: profileData.user.genres?.map((g: any) => ({
+          value: g,
+          label: g.charAt(0).toUpperCase() + g.slice(1).replace("-", " "),
+        })),
+        venues: profileData.user.venues?.map((v: any) => ({
+          value: v,
+          label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
+        })),
+        hosts: profileData.user.hosts?.[0] || "",
+        privateEvents: profileData.user.receivePrivateEventRequests
+          ? "yes"
+          : "no",
+        venueMessages: profileData.user.receiveVenueBookingMessages
+          ? "yes"
+          : "no",
+        facebook: profileData.user.socialMediaLinks?.facebook || "",
+        instagram: profileData.user.socialMediaLinks?.instagram || "",
+        tiktok: profileData.user.socialMediaLinks?.tiktok || "",
+        youtube: profileData.user.socialMediaLinks?.youtube || "",
       };
 
-      // Set image previews and URLs if they exist
-      if (profileData.user.images?.length) {
-        setImageUrls(profileData.user.images);
-        setImagePreviews(profileData.user.images);
+   
+
+      if (profileData.user.images) {
+        setImages([...profileData.user.images]);
+      }
+      if (profileData.user.videos) {
+        setVideos([...profileData.user.videos]);
+      }
+      if (profileData.user.profilePhoto) {
+        setLogoUrl(profileData.user.profilePhoto);
+        setLogoPreview(profileData.user.profilePhoto);
       }
 
       reset(formData);
     }
-  }, [profileData, reset, venuesData]);
+  }, [profileData, reset]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -146,52 +267,128 @@ const Profile = () => {
         tagline: data.tagline,
         description: data.about,
         pronoun: data.pronouns,
-        city: data.city?.label || '',
+        city: data.city,
         dragAnniversary: data.dragAnniversary,
         dragMotherName: data.dragMother,
-        dragPerformerName: data.aesthetic,
+        dragPerformerName: data.displayName,
         awards: data.competitions,
-        dragPerformances: data.performances ? data.performances.map((item: any) => item.value) : [],
+        dragPerformances: data.performances
+          ? data.performances.map((item: any) => item.value)
+          : [],
         illusions: data.illusions,
-        genres: data.musicGenres ? data.musicGenres.map((item: any) => item.value) : [],
+        genres: data.musicGenres
+          ? data.musicGenres.map((item: any) => item.value)
+          : [],
         venues: data.venues ? data.venues.map((item: any) => item.value) : [],
-        hosts: data.hosts?.map((host: any) => host.value) || [],
+        hosts: [data.hosts],
         receiveVenueBookingMessages: data.venueMessages === "yes",
         receivePrivateEventRequests: data.privateEvents === "yes",
-        images: imageUrls.filter(url => url !== ''),
+      
+        profilePhoto: logoUrl,
+        images: images.filter((url) => url !== ""),
+        videos: videos.filter((url) => url !== ""),
+
         socialMediaLinks: {
           facebook: data.facebook,
           instagram: data.instagram,
           tiktok: data.tiktok,
-          youtube: data.youtube
-        }
+          youtube: data.youtube,
+        },
       };
 
-      console.log("transformed data : ", transformedData);
       await updateProfile({ data: transformedData }).unwrap();
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to update profile:', error);
-      toast.error('Failed to update profile. Please try again.');
+      console.error("Failed to update profile:", error);
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
-  if (isLoading) return <div className="flex mt-16 justify-center min-h-screen max-w-[850px]">
-    <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
-  </div>;
+  if (isLoading)
+    return (
+      <div className="flex mt-16 justify-center min-h-screen max-w-[850px]">
+        <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
 
-  const inputClass = "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-[#383838] px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
-  const labelClass = "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[20px] leading-[100%] capitalize text-white mb-2";
+  const inputClass =
+    "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-[#383838] px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
+  const labelClass =
+    "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[20px] leading-[100%] capitalize text-white mb-2";
+
+  // Render media preview
+  // Update the renderMediaPreview function in your component
+  const renderMediaPreview = (media: MediaItem | string, index: number) => {
+    if (!media) {
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+        </div>
+      );
+    }
+
+    const isVideo = typeof media === "object" && media.type === "video";
+    const isImage =
+      typeof media === "string" ||
+      (typeof media === "object" && media.type === "image");
+    const url = typeof media === "string" ? media : media.url;
+
+    return (
+      <div className="w-full h-full relative">
+        {isVideo ? (
+          <div className="relative w-full h-full">
+            <video
+              className="w-full h-full object-cover"
+              src={url}
+              controls
+              controlsList="nodownload noremoteplayback noplaybackrate"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {isEditing && (
+              <button
+                className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMediaSelect(index);
+                }}
+              >
+                Change
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <img
+              src={url}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            {isEditing && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
+                <span className="text-white text-lg">Click to change</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
-      <div className="flex justify-end pt-16 max-w-[850px] text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase items-center gap-2 cursor-pointer" onClick={() => setIsEditing(!isEditing)}>
+      <div
+        className="flex justify-end pt-16 max-w-[850px] text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase items-center gap-2 cursor-pointer"
+        onClick={() => setIsEditing(!isEditing)}
+      >
         <img src="/profile/edit.svg" alt="Edit" className="w-4 h-4" />
-        {isEditing ? 'cancel' : 'edit'}
+        {isEditing ? "cancel" : "edit"}
       </div>
       <div className="p-4 md:px-8 pb-16 bg-black max-w-[782px]">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 md:space-y-6"
+        >
           {/* Name */}
           <div className="relative">
             <label className={labelClass}>
@@ -255,7 +452,13 @@ const Profile = () => {
             </select>
             <div className="absolute xl:right-4 lg:right-4 right-4 top-[30px] md:top-[36px] pointer-events-none text-[#383838]">
               <svg width="20px" height="30px" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M4 6L8 10L12 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
           </div>
@@ -263,64 +466,16 @@ const Profile = () => {
           {/* City */}
           <div className="relative">
             <label className={labelClass}>City/Metropolitan Area*</label>
-            <Controller
-              name="city"
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isDisabled={!isEditing}
-                  options={cityOptions}
-                  className="w-full max-w-[782px]"
-                  placeholder="Search for your city"
-                  isClearable
-                  isSearchable
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: "46px",
-                      background: "#0D0D0D",
-                      border: "1px solid #383838",
-                      borderRadius: "16px",
-                      boxShadow: "none",
-                      "&:hover": {
-                        border: "1px solid #383838",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "#1D1D1D",
-                      border: "1px solid #383838",
-                      borderRadius: "4px",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      background: state.isFocused ? "#383838" : "#1D1D1D",
-                      color: "#fff",
-                      cursor: "pointer",
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "#383838",
-                    }),
-                  }}
-                />
-              )}
+            <input
+              type="text"
+              placeholder="Enter your city"
+              className={inputClass}
+              disabled={!isEditing}
+              {...register("city", { required: true })}
             />
-            {/* <div className="absolute xl:right-4 lg:right-4 right-4 top-[36px] md:top-[40px] pointer-events-none text-[#383838]">
+            <div className="absolute xl:right-4 lg:right-4 right-4 top-[36px] md:top-[40px] pointer-events-none text-[#383838]">
               <img src="/profile/location.svg" alt="location" />
-            </div> */}
+            </div>
           </div>
 
           {/* Drag Anniversary */}
@@ -351,7 +506,9 @@ const Profile = () => {
 
           {/* Performance Aesthetic */}
           <div className="relative">
-            <label className={labelClass}>Describe your Drag Performance/Aesthetic?</label>
+            <label className={labelClass}>
+              Describe your Drag Performance/Aesthetic?
+            </label>
             <input
               type="text"
               maxLength={150}
@@ -360,14 +517,16 @@ const Profile = () => {
               disabled={!isEditing}
               {...register("aesthetic")}
             />
-            <span className="absolute md:bottom-2 md:right-4 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
+            <span className="absolute md:bottom-2 md:right-64 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
               ( 150 characters)
             </span>
           </div>
 
           {/* Competitions */}
           <div className="!mt-10 md:mt-0">
-            <label className={labelClass}>Competitions and Awards you want to mention?</label>
+            <label className={labelClass}>
+              Competitions and Awards you want to mention?
+            </label>
             <input
               type="text"
               placeholder="Enter your achievements"
@@ -379,7 +538,9 @@ const Profile = () => {
 
           {/* Drag Performances */}
           <div>
-            <label className={labelClass}>Your Drag Performances?* (Select at least 3)</label>
+            <label className={labelClass}>
+              Your Drag Performances?* (Select at least 3)
+            </label>
             <Controller
               name="performances"
               control={control}
@@ -430,7 +591,9 @@ const Profile = () => {
                         height: "16px",
                         border: "2px solid #fff",
                         borderRadius: "50%",
-                        backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
                       },
                     }),
                     multiValue: (base) => ({
@@ -463,7 +626,9 @@ const Profile = () => {
 
           {/* Illusions */}
           <div>
-            <label className={labelClass}>Do you have any Illusions/Impersonations you Perform?</label>
+            <label className={labelClass}>
+              Do you have any Illusions/Impersonations you Perform?
+            </label>
             <input
               type="text"
               placeholder="Enter your illusions/impersonations"
@@ -532,7 +697,9 @@ const Profile = () => {
                         height: "16px",
                         border: "2px solid #fff",
                         borderRadius: "50%",
-                        backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
                       },
                     }),
                     multiValue: (base) => ({
@@ -565,7 +732,9 @@ const Profile = () => {
 
           {/* Venues */}
           <div>
-            <label className={labelClass}>What venues have you been booked at Recently?*</label>
+            <label className={labelClass}>
+              What venues have you been booked at Recently?*
+            </label>
             <Controller
               name="venues"
               control={control}
@@ -580,11 +749,20 @@ const Profile = () => {
                     { value: "jps-bar", label: "JP's Bar And Grill, Eagle" },
                     { value: "eagle", label: "Eagle" },
                     { value: "boheme", label: "Boheme" },
-                    { value: "rich's", label: "Rich's/The Montrose Country Club" },
-                    { value: "hamburger-marys", label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)" },
+                    {
+                      value: "rich's",
+                      label: "Rich's/The Montrose Country Club",
+                    },
+                    {
+                      value: "hamburger-marys",
+                      label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)",
+                    },
                     { value: "crush", label: "Crush (Dallas, TX)" },
                     { value: "havana", label: "Havana (Dallas TX)" },
-                    { value: "woodlawn", label: "Woodlawn Pointe (San Antonio, TX)" },
+                    {
+                      value: "woodlawn",
+                      label: "Woodlawn Pointe (San Antonio, TX)",
+                    },
                   ]}
                   className="w-full max-w-[782px]"
                   styles={{
@@ -620,7 +798,9 @@ const Profile = () => {
                         height: "16px",
                         border: "2px solid #fff",
                         borderRadius: "50%",
-                        backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
                       },
                     }),
                     multiValue: (base) => ({
@@ -653,76 +833,29 @@ const Profile = () => {
 
           {/* Hosts */}
           <div className="relative">
-            <label className={labelClass}>Hosts/Hostesses/Showrunners that you have worked with!</label>
-            <Controller
-              name="hosts"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isMulti
-                  isDisabled={!isEditing}
-                  options={venuesData?.map((venue: any) => ({
-                    value: venue._id,
-                    label: venue.name
-                  })) || []}
-                  className="w-full max-w-[782px]"
-                  placeholder="Select venues you've worked with"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: "46px",
-                      background: "#0D0D0D",
-                      border: "1px solid #383838",
-                      borderRadius: "16px",
-                      boxShadow: "none",
-                      "&:hover": {
-                        border: "1px solid #383838",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "#1D1D1D",
-                      border: "1px solid #383838",
-                      borderRadius: "4px",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      background: state.isFocused ? "#383838" : "#1D1D1D",
-                      color: "#fff",
-                      cursor: "pointer",
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      background: "#383838",
-                      borderRadius: "4px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "#fff",
-                      ":hover": {
-                        background: "#4a4a4a",
-                        borderRadius: "0 4px 4px 0",
-                      },
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    placeholder: (base) => ({
-                      ...base,
-                      color: "#383838",
-                    }),
-                  }}
+            <label className={labelClass}>
+              Hosts/Hostesses/Showrunners that you have worked with!
+            </label>
+            <select
+              className={`${inputClass} appearance-none`}
+              disabled={!isEditing}
+              {...register("hosts")}
+            >
+              <option value="host1">Host 1</option>
+              <option value="host2">Host 2</option>
+              <option value="host3">Host 3</option>
+            </select>
+            <div className="absolute xl:right-4 lg:right-4 right-4 top-[44px] md:top-[36px] pointer-events-none text-[#383838]">
+              <svg width="20px" height="30px" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M4 6L8 10L12 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-              )}
-            />
+              </svg>
+            </div>
           </div>
 
           {/* Booking Preferences */}
@@ -730,7 +863,8 @@ const Profile = () => {
             {/* First Question */}
             <div className="space-y-4 max-w-[800px]">
               <p className="text-xl font-medium">
-                Please select "No" if you wish to not receive messages from venues regarding direct booking requests?
+                Please select "No" if you wish to not receive messages from
+                venues regarding direct booking requests?
               </p>
               <div className="flex gap-6 items-center">
                 <label className="flex items-center">
@@ -759,7 +893,8 @@ const Profile = () => {
             {/* Second Question */}
             <div className="space-y-4">
               <p className="text-xl font-normal text-[20px] leading-none capitalize max-w-[800px] font-['Space_Grotesk']">
-                Please select "No" if you wish not to receive booking requests for private events?
+                Please select "No" if you wish not to receive booking requests
+                for private events?
               </p>
               <div className="flex gap-6 items-center">
                 <label className="flex items-center">
@@ -789,19 +924,59 @@ const Profile = () => {
           {/* Social Media Links */}
           <div className="space-y-3 md:space-y-4">
             <h2 className={labelClass}>Add Social Media Link</h2>
-            {["Instagram", "Facebook", "TikTok", "Twitter", "YouTube"].map((platform) => (
-              <input
-                key={platform}
-                type="text"
-                placeholder={platform.toLowerCase()}
-                className={inputClass}
-                disabled={!isEditing}
-                {...register(platform.toLowerCase())}
-              />
-            ))}
+            {["Instagram", "Facebook", "TikTok", "Twitter", "YouTube"].map(
+              (platform) => (
+                <input
+                  key={platform}
+                  type="text"
+                  placeholder={platform.toLowerCase()}
+                  className={inputClass}
+                  disabled={!isEditing}
+                  {...register(platform.toLowerCase())}
+                />
+              )
+            )}
           </div>
 
           <hr className="!my-12 py-0.5 max-w-[900px] text-[#656563]" />
+
+          {/* Upload Logo */}
+          <div className="w-full max-w-[782px] bg-black p-4">
+            <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
+              Upload Logo
+            </h2>
+
+            <div
+              className={`bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center ${
+                isEditing ? "cursor-pointer hover:bg-[#1A1A1A]" : ""
+              }`}
+              onClick={handleLogoUpload}
+            >
+              {logoPreview ? (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={logoPreview}
+                    alt="Venue Logo"
+                    className="w-32 h-32 object-contain mb-4"
+                  />
+                  <p className="text-[#FF00A2]">Click to change logo</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-2">
+                    Please Upload The Venue Logo In PNG Or JPG Format, With A
+                    Recommended Size
+                  </p>
+                  <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-4">
+                    Of [Specify Dimensions, E.G., 500x500px]
+                  </p>
+                  <div className="bg-[#FF00A2] text-black rounded-lg px-8 py-1 inline-block font-['Space_Grotesk'] text-[16px] leading-[100%] tracking-[0%] text-center capitalize">
+                    Upload
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
           {/* Upload Images/Video */}
           <div className="max-w-[900px] w-full">
@@ -809,24 +984,21 @@ const Profile = () => {
               Upload images/video
             </h2>
             <p className="font-['Space_Grotesk'] mt-4 md:mt-6 text-white font-normal text-[12px] md:text-[13px] leading-[120%] md:leading-[100%] align-middle">
-              Upload JPG, PNG, or GIF Maximum 10 photos & 10 video clips (max 25MB, 1200x800px or larger), no copyrighted or inappropriate content
+              Upload JPG, PNG, GIF, or MP4. Maximum 10 photos & 10 video clips
+              (max 25MB, 1200x800px or larger for images).
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-5 md:mt-7">
-              {[0, 1, 2, 3].map((index) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
                 <div
                   key={index}
-                  onClick={() => handleImageSelect(index)}
-                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] flex items-center justify-center overflow-hidden ${isEditing ? 'cursor-pointer hover:bg-[#1A1A1A] transition-colors' : 'cursor-not-allowed'}`}
+                  onClick={() => handleMediaSelect(index)}
+                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] overflow-hidden ${
+                    isEditing
+                      ? "cursor-pointer hover:bg-[#1A1A1A] transition-colors"
+                      : "cursor-default"
+                  }`}
                 >
-                  {imagePreviews[index] ? (
-                    <img 
-                      src={imagePreviews[index]} 
-                      alt={`Preview ${index + 1}`} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-[#383838] text-2xl md:text-3xl">+</span>
-                  )}
+                  {renderMediaPreview(mediaPreviews[index], index)}
                 </div>
               ))}
             </div>
@@ -835,6 +1007,27 @@ const Profile = () => {
           {/* Buttons */}
           {isEditing && (
             <div className="flex flex-row gap-3 justify-center mt-6 md:mt-8">
+              {/* <button
+                type="button"
+                onClick={handleSubmit(async (data) => {
+                  try {
+                    await updateProfile({ id: performerId, data }).unwrap();
+                    setIsEditing(false);
+                  } catch (error) {
+                    console.error('Failed to save changes:', error);
+                  }
+                })}
+                disabled={isUpdating}
+                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-l-full border border-[#FF00A2] text-[#FF00A2] text-sm md:text-base"
+              >
+                {isUpdating ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : 'Save Changes'}
+              </button> */}
+
               <button
                 type="submit"
                 disabled={isUpdating}
@@ -845,7 +1038,9 @@ const Profile = () => {
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Publishing...</span>
                   </div>
-                ) : 'Publish/Update'}
+                ) : (
+                  "Publish/Update"
+                )}
               </button>
             </div>
           )}
