@@ -14,6 +14,8 @@ import CreateEvent from "./components/events/create-event";
 import Privacy from './components/privacy';
 import Terms from './components/terms';
 import CalendarPage from "./pages/calendar";
+import EventDetailPage from './pages/events/event-detail';
+
 function App() {
   return (
     <BrowserRouter>
@@ -32,6 +34,7 @@ function App() {
             <Route path="review" element={<ReviewsPage />} />
             <Route path="events" element={<EventsPage />} />
             <Route path="event/create-event" element={<CreateEvent />} />
+            <Route path="event/detail/:id" element={<EventDetailPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="terms" element={<Terms />} />

@@ -26,7 +26,7 @@ export const eventsApi = createApi({
     }),
     getEventById: builder.query({
       query: (eventId: string) => ({
-        url: `/api/performer/event/get-event-by-id/${eventId}`,
+        url: `/api/performer/event/get-single-event/${eventId}`,
         method: "GET"
       }),
     }),
