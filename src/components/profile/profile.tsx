@@ -3,10 +3,9 @@ import Select from "react-select";
 import {
   useGetPerformerProfileQuery,
   useUpdatePerformerProfileMutation,
-} from "../../apis/events";
+} from "../../apis/profile";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { v2 as cloudinary } from "cloudinary";
 
 interface MediaItem {
   url: string;
@@ -217,16 +216,16 @@ const Profile = () => {
         dragMother: profileData.user.dragMotherName,
         aesthetic: profileData.user.dragPerformerName,
         competitions: profileData.user.awards?.join(", "),
-        performances: profileData.user.dragPerformances?.map((p) => ({
+        performances: profileData.user.dragPerformances?.map((p: any) => ({
           value: p,
           label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
         })),
         illusions: profileData.user.illusions,
-        musicGenres: profileData.user.genres?.map((g) => ({
+        musicGenres: profileData.user.genres?.map((g: any) => ({
           value: g,
           label: g.charAt(0).toUpperCase() + g.slice(1).replace("-", " "),
         })),
-        venues: profileData.user.venues?.map((v) => ({
+        venues: profileData.user.venues?.map((v: any) => ({
           value: v,
           label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
         })),

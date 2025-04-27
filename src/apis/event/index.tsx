@@ -11,16 +11,6 @@ export const eventsApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getPerformerProfile: builder.query({
-      query: () => `/auth/user/get-profile`,
-    }),
-    updatePerformerProfile: builder.mutation({
-      query: ({ data }: { data: any }) => ({
-        url: `auth/user/update-profile`,
-        method: "PATCH",
-        body: data,
-      }),
-    }),
     addEvent: builder.mutation({
       query: (eventData: any) => ({
         url: "/api/performer/event/add-event",
@@ -28,11 +18,30 @@ export const eventsApi = createApi({
         body: eventData,
       }),
     }),
+    getAllEvents: builder.query({
+      query: ({limit = 10, page = 1}) => ({
+        url: `/api/performer/event/get-all-events?limit=${limit}&page=${page}`,
+        method: "GET"
+      }),
+    }),
+    getEventById: builder.query({
+      query: (eventId: string) => ({
+        url: `/api/performer/event/get-single-event/${eventId}`,
+        method: "GET"
+      }),
+    }),
+    deleteEvent: builder.mutation({
+      query: (eventId: string) => ({
+        url: `/api/performer/event/delete-event/${eventId}`,
+        method: "DELETE"
+      }),
+    }),
   }),
 });
 
 export const {
-  useGetPerformerProfileQuery,
-  useUpdatePerformerProfileMutation,
   useAddEventMutation,
+  useGetAllEventsQuery,
+  useGetEventByIdQuery,
+  useDeleteEventMutation,
 } = eventsApi;

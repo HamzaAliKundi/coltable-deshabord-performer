@@ -1,43 +1,35 @@
 import React, { useState } from 'react'
 import CreateEvent from './create-event';
 import { Link } from 'react-router-dom';
-import Pagination from '../../common/Pagination';
+import { useGetAllEventsQuery } from '../../apis/event';
+import EventsList from './EventsList';
 
 const Events = () => {
   const [activeTab, setActiveTab] = useState('eventRequest');
-  const [expandedTitle, setExpandedTitle] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
-  const events = [
-    {
-      id: 1,
-      title: "Barcelona Food Truck Festival 2018",
-      time: "Start 20:00pm - 22:00pm",
-      location: "Manhattan, New York",
-      image: "/events/event.svg"
-    },
-    {
-      id: 2,
-      title: "Summer Music Festival 2023",
-      time: "Start 18:00pm - 23:00pm",
-      location: "Central Park, New York",
-      image: "/events/event.svg"
-    },
-    {
-      id: 3,
-      title: "Tech Conference 2023",
-      time: "Start 09:00am - 17:00pm",
-      location: "Brooklyn Expo Center",
-      image: "/events/event.svg"
-    },
-    {
-      id: 4,
-      title: "Art Exhibition Night",
-      time: "Start 19:00pm - 22:00pm",
-      location: "Chelsea Gallery District",
-      image: "/events/event.svg"
-    }
-  ];
-    
+  const { data: eventsData, isLoading, refetch } = useGetAllEventsQuery({ 
+    limit: 10, 
+    page: currentPage 
+  });
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    refetch();
+  };
+
+  const handleStatusChange = async (eventId: string, newStatus: 'approved' | 'rejected') => {
+    // TODO: Implement status change API call
+    console.log(`Changing status of event ${eventId} to ${newStatus}`);
+    await refetch();
+  };
+
+  const filteredEvents = eventsData?.docs?.filter((event: any) => {
+    if (activeTab === 'pendingRequest') return event.status === 'pending';
+    if (activeTab === 'confirmRequest') return event.status === 'approved';
+    return true;
+  }) || [];
+
   return (
     <div className="bg-black p-4 md:p-8 w-full mb-32">
       {/* Tab Navigation */}
@@ -89,84 +81,14 @@ const Events = () => {
         </div>
       </div>
 
-      {/* Conditional Rendering Based on Tab */}
-      {activeTab === "createEvent" ? (
-        <CreateEvent />
-      ) : activeTab === "eventRequest" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-[#212121] mt-7 rounded-[8px] overflow-hidden w-full max-w-[300px] flex flex-col"
-            >
-              <div className="p-2">
-                <img
-                  src={event.image}
-                  alt="Event"
-                  className="w-full h-[220px] rounded-[8px] object-cover"
-                />
-              </div>
-
-              <div className="p-3 flex flex-col">
-                <h2
-                  className="text-white font-['Space_Grotesk'] font-bold text-base capitalize mb-3 cursor-pointer"
-                  onClick={() =>
-                    setExpandedTitle(
-                      expandedTitle === event.id ? null : event.id
-                    )
-                  }
-                >
-                  {expandedTitle === event.id
-                    ? event.title
-                    : event.title.length > 20
-                    ? `${event.title.substring(0, 20)}...`
-                    : event.title}
-                </h2>
-
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <img
-                      src="/events/time.svg"
-                      alt="Time"
-                      className="w-4 h-4"
-                    />
-                    <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
-                      {event.time}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <img
-                      src="/events/location.svg"
-                      alt="Location"
-                      className="w-4 h-4"
-                    />
-                    <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
-                      {event.location}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  <button className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]">
-                    VIEW DETAILS
-                  </button>
-                  <div className="flex gap-2">
-                    <button className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]">
-                      REJECT EVENT
-                    </button>
-                    <button className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]">
-                      ACCEPT EVENT
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      <div className="flex  mt-10 justify-center items-center">
-        <Pagination />
-      </div>
+      <EventsList
+        events={filteredEvents}
+        isLoading={isLoading}
+        currentPage={currentPage}
+        totalPages={eventsData?.totalPages || 1}
+        onPageChange={handlePageChange}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 }
