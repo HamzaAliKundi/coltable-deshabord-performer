@@ -71,13 +71,13 @@ const Events = () => {
         </div>
         <div className="absolute -right-4 top-16 flex items-center gap-3 text-white lg:top-0">
           <Link to="/event/create-event" className="font-['Space_Grotesk']">Create event</Link>
-          <Link to="/calendar">
+          {/* <Link to="/calendar">
             <img
               src="/events/calendar.svg"
               alt="calendar"
               className="w-8 h-8 md:w-auto md:h-auto"
             />
-          </Link>
+          </Link> */}
         </div>
       </div>
 
