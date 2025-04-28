@@ -135,13 +135,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
             <div className="h-[1px] bg-[#959092] flex-1"></div>
           </div>
 
-          <button
+          {/* <button
             type="button"
             className="w-full h-12 rounded-lg border border-gray-300 bg-white text-black font-['Space_Grotesk'] flex items-center justify-center gap-2 hover:bg-gray-100"
           >
             <span>Login With Google</span>
             <FcGoogle size={20} />
-          </button>
+          </button> */}
 
           <div className="text-center">
             <p className="text-[#959092] text-sm">

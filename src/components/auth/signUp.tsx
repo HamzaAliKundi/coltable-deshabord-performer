@@ -49,7 +49,7 @@ const Signup = () => {
       >
         <div className="w-full max-w-3xl px-4 py-8">
           <h1 className="text-center text-2xl font-bold text-white mb-8 font-['Space_Grotesk'] uppercase">
-            New User Registration
+            Performer Registration
           </h1>
 
           <form onSubmit={handleSubmit(onSubmit)}>
