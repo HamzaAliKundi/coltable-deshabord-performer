@@ -435,7 +435,7 @@ const Profile = () => {
             </label>
             <input
               type="text"
-              placeholder="Catalina"
+              placeholder="Enter your name"
               className={inputClass}
               disabled={!isEditing}
               {...register("displayName", { required: true })}
@@ -447,7 +447,7 @@ const Profile = () => {
             <label className={labelClass}>What Is Your Full Drag Name?*</label>
             <input
               type="text"
-              placeholder="Catalina Seymour-Alexander"
+              placeholder="Enter your drag name"
               className={inputClass}
               disabled={!isEditing}
               {...register("dragName", { required: true })}
@@ -458,7 +458,7 @@ const Profile = () => {
           <div>
             <label className={labelClass}>Your Profile Tagline*</label>
             <textarea
-              placeholder="This Beautiful And Talented Queen Will Twin And Leave You Begging For An Encore With Her Electrifying Energy!"
+              placeholder="Enter your tagline"
               className={`${inputClass} h-[80px] resize-none`}
               disabled={!isEditing}
               {...register("tagline", { required: true })}
@@ -469,7 +469,7 @@ const Profile = () => {
           <div>
             <label className={labelClass}>Tell Us About Yourself?*</label>
             <textarea
-              placeholder="I am a Latin Showgirl with all of the kicks, splits, tricks and dips!"
+              placeholder="Enter your about"
               className={`${inputClass} h-[80px] md:h-[130px] resize-none`}
               disabled={!isEditing}
               {...register("about", { required: true })}
@@ -556,7 +556,7 @@ const Profile = () => {
               disabled={!isEditing}
               {...register("aesthetic")}
             />
-            <span className="absolute md:bottom-2 md:right-64 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
+            <span className="absolute md:bottom-2 md:right-4 bottom-[-20px] right-0 text-[#383838] text-xs md:text-sm">
               ( 150 characters)
             </span>
           </div>
