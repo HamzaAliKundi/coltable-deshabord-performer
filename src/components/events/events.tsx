@@ -1,34 +1,55 @@
-import React, { useState } from 'react'
-import CreateEvent from './create-event';
-import { Link } from 'react-router-dom';
-import { useGetAllEventsQuery } from '../../apis/event';
-import EventsList from './EventsList';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { useGetAllEventsQuery } from "../../apis/event";
+import EventsList from "./EventsList";
 
 const Events = () => {
-  const [activeTab, setActiveTab] = useState('eventRequest');
   const [currentPage, setCurrentPage] = useState(1);
-  
-  const { data: eventsData, isLoading, refetch } = useGetAllEventsQuery({ 
-    limit: 10, 
-    page: currentPage 
+  const eventsPerPage = 10;
+  const [activeTab, setActiveTab] = useState<
+    "eventRequest" | "pendingRequest" | "confirmRequest"
+  >("eventRequest");
+
+  const { data: eventsData, isLoading } = useGetAllEventsQuery({
+    limit: 1000,
+    page: 1,
   });
+
+  const filterEventsByTab = () => {
+    if (!eventsData?.docs) return [];
+
+    return eventsData.docs.filter((event: any) => {
+      if (activeTab === "pendingRequest") return event.status === "pending";
+      if (activeTab === "confirmRequest") return event.status === "approved";
+      return true;
+    });
+  };
+
+  const filteredEvents = filterEventsByTab();
+
+  const paginatedEvents = filteredEvents.slice(
+    (currentPage - 1) * eventsPerPage,
+    currentPage * eventsPerPage
+  );
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    refetch();
   };
 
-  const handleStatusChange = async (eventId: string, newStatus: 'approved' | 'rejected') => {
-    // TODO: Implement status change API call
-    console.log(`Changing status of event ${eventId} to ${newStatus}`);
-    await refetch();
-  };
+  // const handleStatusChange = async (
+  //   eventId: string,
+  //   newStatus: "approved" | "rejected"
+  // ) => {
+  //   console.log(`Changing status of event ${eventId} to ${newStatus}`);
+  //   await refetch();
+  // };
 
-  const filteredEvents = eventsData?.docs?.filter((event: any) => {
-    if (activeTab === 'pendingRequest') return event.status === 'pending';
-    if (activeTab === 'confirmRequest') return event.status === 'approved';
-    return true;
-  }) || [];
+  const handleTabChange = (
+    tab: "eventRequest" | "pendingRequest" | "confirmRequest"
+  ) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="bg-black p-4 md:p-8 w-full mb-32">
@@ -39,7 +60,7 @@ const Events = () => {
             className={`px-3 md:px-6 py-2 md:py-4 font-bold text-sm md:text-base transition-all duration-300 relative whitespace-nowrap ${
               activeTab === "eventRequest" ? "text-white" : "text-gray-400"
             }`}
-            onClick={() => setActiveTab("eventRequest")}
+            onClick={() => handleTabChange("eventRequest")}
           >
             Event Request
             {activeTab === "eventRequest" && (
@@ -50,7 +71,7 @@ const Events = () => {
             className={`px-3 md:px-6 py-2 md:py-4 font-bold text-sm md:text-base transition-all duration-300 relative whitespace-nowrap ${
               activeTab === "pendingRequest" ? "text-white" : "text-gray-400"
             }`}
-            onClick={() => setActiveTab("pendingRequest")}
+            onClick={() => handleTabChange("pendingRequest")}
           >
             Pending Request
             {activeTab === "pendingRequest" && (
@@ -61,7 +82,7 @@ const Events = () => {
             className={`px-3 md:px-6 py-2 md:py-4 font-bold text-sm md:text-base transition-all duration-300 relative whitespace-nowrap ${
               activeTab === "confirmRequest" ? "text-white" : "text-gray-400"
             }`}
-            onClick={() => setActiveTab("confirmRequest")}
+            onClick={() => handleTabChange("confirmRequest")}
           >
             Confirm Request
             {activeTab === "confirmRequest" && (
@@ -70,27 +91,21 @@ const Events = () => {
           </button>
         </div>
         <div className="absolute -right-4 top-16 flex items-center gap-3 text-white lg:top-0">
-          <Link to="/event/create-event" className="font-['Space_Grotesk']">Create event</Link>
-          {/* <Link to="/calendar">
-            <img
-              src="/events/calendar.svg"
-              alt="calendar"
-              className="w-8 h-8 md:w-auto md:h-auto"
-            />
-          </Link> */}
+          <Link to="/event/create-event" className="font-['Space_Grotesk']">
+            Create event
+          </Link>
         </div>
       </div>
 
       <EventsList
-        events={filteredEvents}
+        events={paginatedEvents}
         isLoading={isLoading}
         currentPage={currentPage}
-        totalPages={eventsData?.totalPages || 1}
+        totalPages={Math.ceil(filteredEvents.length / eventsPerPage)}
         onPageChange={handlePageChange}
-        onStatusChange={handleStatusChange}
       />
     </div>
   );
-}
+};
 
-export default Events
+export default Events;

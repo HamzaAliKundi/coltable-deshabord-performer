@@ -1,8 +1,8 @@
-import React from 'react';
-import { useGetEventByIdQuery, useDeleteEventMutation } from '../../apis/event';
-import { format } from 'date-fns';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import React from "react";
+import { useGetEventByIdQuery, useDeleteEventMutation } from "../../apis/event";
+import { format } from "date-fns";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 interface EventDetailProps {
   eventId: string | undefined;
@@ -11,26 +11,30 @@ interface EventDetailProps {
 const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isEditMode = searchParams.get('edit') === 'true';
-  const { data: eventResponse, isLoading, error } = useGetEventByIdQuery(eventId || '');
+  const isEditMode = searchParams.get("edit") === "true";
+  const {
+    data: eventResponse,
+    isLoading,
+    error,
+  } = useGetEventByIdQuery(eventId || "");
   const [deleteEvent] = useDeleteEventMutation();
 
   const event = eventResponse?.event;
 
   const handleDelete = async () => {
     if (!eventId) return;
-    
+
     try {
       await deleteEvent(eventId).unwrap();
-      toast.success('Event deleted successfully');
-      navigate('/events');
+      toast.success("Event deleted successfully");
+      navigate("/events");
     } catch (error) {
-      toast.error('Failed to delete event');
+      toast.error("Failed to delete event");
     }
   };
 
   const handleEdit = () => {
-    navigate(`/event/detail/${eventId}?edit=true`);
+    navigate(`/event/create-event/${eventId}`);
   };
 
   if (isLoading) {
@@ -44,7 +48,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
   if (error || !event) {
     return (
       <div className="text-center text-white py-8">
-        {error ? 'Error loading event' : 'Event not found'}
+        {error ? "Error loading event" : "Event not found"}
       </div>
     );
   }
@@ -70,13 +74,21 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
               <div className="flex items-center gap-2">
                 <img src="/events/time.svg" alt="Time" className="w-4 h-4" />
                 <p className="font-['Space_Grotesk'] text-white">
-                  {event?.startTime && format(new Date(event.startTime), 'MMM dd, yyyy h:mm a')} - 
-                  {event?.endTime && format(new Date(event.endTime), 'h:mm a')}
+                  {event?.startTime &&
+                    format(
+                      new Date(event.startTime),
+                      "MMM dd, yyyy h:mm a"
+                    )}{" "}
+                  -{event?.endTime && format(new Date(event.endTime), "h:mm a")}
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <img src="/events/location.svg" alt="Location" className="w-4 h-4" />
+                <img
+                  src="/events/location.svg"
+                  alt="Location"
+                  className="w-4 h-4"
+                />
                 <p className="font-['Space_Grotesk'] text-white">
                   {event?.host}
                 </p>
@@ -108,14 +120,14 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
           </div>
 
           <div className="mt-8 flex justify-end gap-4">
-            <button 
+            <button
               onClick={handleDelete}
               className="px-6 py-2 bg-[#212121] border border-white text-white rounded-[30px] hover:bg-red-500 hover:border-red-500 transition-colors"
             >
               Delete Event
             </button>
             {!isEditMode && (
-              <button 
+              <button
                 onClick={handleEdit}
                 className="px-6 py-2 bg-[#FF00A2] text-white rounded-[30px]"
               >
@@ -129,4 +141,4 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
   );
 };
 
-export default EventDetail; 
+export default EventDetail;

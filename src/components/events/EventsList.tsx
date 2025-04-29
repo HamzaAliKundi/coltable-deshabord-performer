@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDeleteEventMutation, useGetAllEventsQuery } from '../../apis/event';
-import { toast } from 'react-hot-toast';
-import Pagination from '../../common/Pagination';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDeleteEventMutation, useGetAllEventsQuery } from "../../apis/event";
+import { toast } from "react-hot-toast";
+import Pagination from "../../common/Pagination";
 
 interface Event {
   _id: string;
@@ -30,7 +30,8 @@ const EventsList: React.FC<EventsListProps> = ({
   isLoading,
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
+  
 }) => {
   const [expandedTitle, setExpandedTitle] = React.useState<string | null>(null);
   const navigate = useNavigate();
@@ -40,10 +41,10 @@ const EventsList: React.FC<EventsListProps> = ({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -51,10 +52,10 @@ const EventsList: React.FC<EventsListProps> = ({
     setDeletingId(eventId);
     try {
       await deleteEvent(eventId).unwrap();
-      toast.success('Event deleted successfully');
+      toast.success("Event deleted successfully");
       refetch();
     } catch (error) {
-      toast.error('Failed to delete event');
+      toast.error("Failed to delete event");
     } finally {
       setDeletingId(null);
     }
@@ -69,11 +70,7 @@ const EventsList: React.FC<EventsListProps> = ({
   }
 
   if (!events.length) {
-    return (
-      <div className="text-center text-white py-8">
-        No events found
-      </div>
-    );
+    return <div className="text-center text-white py-8">No events found</div>;
   }
 
   return (
@@ -95,7 +92,11 @@ const EventsList: React.FC<EventsListProps> = ({
             <div className="p-3 flex flex-col">
               <h2
                 className="text-white font-['Space_Grotesk'] font-bold text-base capitalize mb-3 cursor-pointer"
-                onClick={() => setExpandedTitle(expandedTitle === event._id ? null : event._id)}
+                onClick={() =>
+                  setExpandedTitle(
+                    expandedTitle === event._id ? null : event._id
+                  )
+                }
               >
                 {expandedTitle === event._id
                   ? event.title
@@ -112,7 +113,11 @@ const EventsList: React.FC<EventsListProps> = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <img src="/events/location.svg" alt="Location" className="w-4 h-4" />
+                  <img
+                    src="/events/location.svg"
+                    alt="Location"
+                    className="w-4 h-4"
+                  />
                   <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
                     {event.host}
                   </p>
@@ -120,17 +125,19 @@ const EventsList: React.FC<EventsListProps> = ({
               </div>
 
               <div className="mt-4 space-y-2">
-                <button 
+                <button
                   onClick={() => navigate(`/event/detail/${event._id}`)}
                   className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
                 >
                   VIEW DETAILS
                 </button>
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={() => handleDelete(event._id)}
                     className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 ${
-                      deletingId === event._id ? 'opacity-50' : 'hover:text-red-500'
+                      deletingId === event._id
+                        ? "opacity-50"
+                        : "hover:text-red-500"
                     }`}
                     disabled={deletingId === event._id}
                   >
@@ -140,10 +147,10 @@ const EventsList: React.FC<EventsListProps> = ({
                         Deleting...
                       </>
                     ) : (
-                      'DELETE EVENT'
+                      "DELETE EVENT"
                     )}
                   </button>
-                  <button 
+                  <button
                     onClick={() => navigate(`/event/detail/${event._id}`)}
                     className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]"
                   >
@@ -155,10 +162,10 @@ const EventsList: React.FC<EventsListProps> = ({
           </div>
         ))}
       </div>
-      
+
       {events.length > 0 && (
         <div className="flex mt-10 justify-center items-center">
-          <Pagination 
+          <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             isLoading={isLoading}
@@ -171,4 +178,4 @@ const EventsList: React.FC<EventsListProps> = ({
   );
 };
 
-export default EventsList; 
+export default EventsList;
