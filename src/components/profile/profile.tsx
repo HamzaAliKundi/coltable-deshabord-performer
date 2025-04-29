@@ -17,6 +17,8 @@ const Profile = () => {
   const [mediaUrls, setMediaUrls] = useState<(MediaItem | string)[]>(
     Array(10).fill("")
   );
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   const [logoUrl, setLogoUrl] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
@@ -46,8 +48,15 @@ const Profile = () => {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        // Check file size (25MB = 25 * 1024 * 1024 bytes)
+        if (file.size > 25 * 1024 * 1024) {
+          toast.error("File size must be less than 25MB");
+          return;
+        }
+
         try {
           setLogoUploading(true);
+          setIsUploading(true);
           // First show preview
           const reader = new FileReader();
           reader.onload = () => {
@@ -95,7 +104,8 @@ const Profile = () => {
           console.error("Failed to upload logo:", error);
           toast.error("Failed to upload logo. Please try again.");
         } finally {
-          setLogoUploading(false); // Upload complete
+          setLogoUploading(false);
+          setIsUploading(false);
         }
       }
     };
@@ -115,7 +125,15 @@ const Profile = () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      // Check file size (25MB = 25 * 1024 * 1024 bytes)
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("File size must be less than 25MB");
+        return;
+      }
+
       try {
+        setIsUploading(true);
+        setUploadingIndex(index);
         // First show preview
         const previewUrl = URL.createObjectURL(file);
         const isVideo = file.type.startsWith("video/");
@@ -186,6 +204,9 @@ const Profile = () => {
         const newPreviews = [...mediaPreviews];
         newPreviews[index] = "";
         setMediaPreviews(newPreviews);
+      } finally {
+        setIsUploading(false);
+        setUploadingIndex(null);
       }
     };
 
@@ -328,7 +349,11 @@ const Profile = () => {
     if (!media) {
       return (
         <div className="w-full h-full flex items-center justify-center">
-          <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+          {uploadingIndex === index ? (
+            <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+          )}
         </div>
       );
     }
@@ -357,8 +382,13 @@ const Profile = () => {
                   e.stopPropagation();
                   handleMediaSelect(index);
                 }}
+                disabled={isUploading}
               >
-                Change
+                {uploadingIndex === index ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Change"
+                )}
               </button>
             )}
           </div>
@@ -371,7 +401,11 @@ const Profile = () => {
             />
             {isEditing && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
-                <span className="text-white text-lg">Click to change</span>
+                {uploadingIndex === index ? (
+                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <span className="text-white text-lg">Click to change</span>
+                )}
               </div>
             )}
           </>
@@ -1012,36 +1046,23 @@ const Profile = () => {
           {/* Buttons */}
           {isEditing && (
             <div className="flex flex-row gap-3 justify-center mt-6 md:mt-8">
-              {/* <button
-                type="button"
-                onClick={handleSubmit(async (data) => {
-                  try {
-                    await updateProfile({ id: performerId, data }).unwrap();
-                    setIsEditing(false);
-                  } catch (error) {
-                    console.error('Failed to save changes:', error);
-                  }
-                })}
-                disabled={isUpdating}
-                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-l-full border border-[#FF00A2] text-[#FF00A2] text-sm md:text-base"
-              >
-                {isUpdating ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving...</span>
-                  </div>
-                ) : 'Save Changes'}
-              </button> */}
-
               <button
                 type="submit"
-                disabled={isUpdating}
-                className="w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-full bg-[#FF00A2] text-white text-sm md:text-base"
+                disabled={isUpdating || isUploading || logoUploading}
+                className={`w-[150px] sm:w-[200px] px-4 sm:px-6 md:px-8 py-2 rounded-full ${
+                  isUpdating || isUploading || logoUploading
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-[#FF00A2]"
+                } text-white text-sm md:text-base`}
               >
-                {isUpdating ? (
+                {isUpdating || isUploading || logoUploading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Publishing...</span>
+                    <span>
+                      {isUploading || logoUploading
+                        ? "Uploading..."
+                        : "Publishing..."}
+                    </span>
                   </div>
                 ) : (
                   "Publish/Update"
