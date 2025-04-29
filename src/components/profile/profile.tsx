@@ -1,6 +1,7 @@
 import { Controller, useForm } from "react-hook-form";
 import Select from "react-select";
 import {
+  useGetAllVenuesQuery,
   useGetPerformerProfileQuery,
   useUpdatePerformerProfileMutation,
 } from "../../apis/profile";
@@ -32,6 +33,9 @@ const Profile = () => {
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdatePerformerProfileMutation();
   const { data: profileData, isLoading } = useGetPerformerProfileQuery();
+
+  const { data: venues } = useGetAllVenuesQuery();
+  console.log(venues);
 
   // State for managing media previews
   const [mediaPreviews, setMediaPreviews] = useState<(MediaItem | string)[]>(
@@ -250,7 +254,13 @@ const Profile = () => {
           value: v,
           label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
         })),
-        hosts: profileData.user.hosts?.[0] || "",
+        hosts: profileData.user.hosts?.map((hostId: string) => {
+          const venue = venues?.find((v: any) => v._id === hostId);
+          return {
+            value: hostId,
+            label: venue?.name || hostId
+          };
+        }) || [],
         privateEvents: profileData.user.receivePrivateEventRequests
           ? "yes"
           : "no",
@@ -283,7 +293,7 @@ const Profile = () => {
 
       reset(formData);
     }
-  }, [profileData, reset]);
+  }, [profileData, reset, venues]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -306,7 +316,7 @@ const Profile = () => {
           ? data.musicGenres.map((item: any) => item.value)
           : [],
         venues: data.venues ? data.venues.map((item: any) => item.value) : [],
-        hosts: [data.hosts],
+        hosts: data.hosts ? data.hosts.map((item: any) => item.value) : [],
         receiveVenueBookingMessages: data.venueMessages === "yes",
         receivePrivateEventRequests: data.privateEvents === "yes",
       
@@ -871,30 +881,88 @@ const Profile = () => {
           </div>
 
           {/* Hosts */}
-          <div className="relative">
+          <div>
             <label className={labelClass}>
               Hosts/Hostesses/Showrunners that you have worked with!
             </label>
-            <select
-              className={`${inputClass} appearance-none`}
-              disabled={!isEditing}
-              {...register("hosts")}
-            >
-              <option value="host1">Host 1</option>
-              <option value="host2">Host 2</option>
-              <option value="host3">Host 3</option>
-            </select>
-            <div className="absolute xl:right-4 lg:right-4 right-4 top-[44px] md:top-[36px] pointer-events-none text-[#383838]">
-              <svg width="20px" height="30px" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 6L8 10L12 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            <Controller
+              name="hosts"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  isMulti
+                  isDisabled={!isEditing}
+                  closeMenuOnSelect={false}
+                  options={venues?.map((venue: any) => ({
+                    value: venue._id,
+                    label: venue.name
+                  }))}
+                  className="w-full max-w-[782px]"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "46px",
+                      background: "#0D0D0D",
+                      border: "1px solid #383838",
+                      borderRadius: "16px",
+                      boxShadow: "none",
+                      "&:hover": {
+                        border: "1px solid #383838",
+                      },
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "#1D1D1D",
+                      border: "1px solid #383838",
+                      borderRadius: "4px",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      background: state.isFocused ? "#383838" : "#1D1D1D",
+                      color: "#fff",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      "&::before": {
+                        content: '""',
+                        display: "block",
+                        width: "16px",
+                        height: "16px",
+                        border: "2px solid #fff",
+                        borderRadius: "50%",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
+                      },
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      background: "#383838",
+                      borderRadius: "4px",
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: "#fff",
+                      ":hover": {
+                        background: "#4a4a4a",
+                        borderRadius: "0 4px 4px 0",
+                      },
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                  }}
+                  placeholder="Select hosts"
                 />
-              </svg>
-            </div>
+              )}
+            />
           </div>
 
           {/* Booking Preferences */}
