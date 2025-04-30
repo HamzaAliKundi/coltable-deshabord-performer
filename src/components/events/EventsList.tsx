@@ -15,6 +15,7 @@ interface Event {
   description: string;
   isPrivate: boolean;
   status: string;
+  image?: string;
 }
 
 interface EventsListProps {
@@ -83,7 +84,7 @@ const EventsList: React.FC<EventsListProps> = ({
           >
             <div className="p-2">
               <img
-                src="/events/event.svg"
+                src={event?.image}
                 alt="Event"
                 className="w-full h-[220px] rounded-[8px] object-cover"
               />

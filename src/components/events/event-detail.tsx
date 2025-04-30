@@ -59,7 +59,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
       <div className="bg-[#212121] rounded-[8px] overflow-hidden">
         <div className="p-4">
           <img
-            src="/events/event.svg"
+            src={event?.image}
             alt="Event"
             className="w-full h-[400px] rounded-[8px] object-cover"
           />
