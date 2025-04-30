@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import {
   useAddEventMutation,
+  useGetAllEventsQuery,
   useGetEventByIdQuery,
   useUpdateEventMutation,
 } from "../../../apis/event";
@@ -45,6 +46,10 @@ const CreateEvent = () => {
       skip: !id,
     }
   );
+  const { refetch: getAllEventsRefetch } = useGetAllEventsQuery({
+    limit: 1000,
+    page: 1,
+  });
 
   const handleLogoUpload = async () => {
     const input = document.createElement("input");
@@ -185,12 +190,14 @@ const CreateEvent = () => {
       };
 
       if (id) {
-        await updateEvent({ id, ...eventData }).unwrap();
+        await updateEvent({ id, eventData }).unwrap();
         toast.success("Event updated successfully!");
+        getAllEventsRefetch();
         navigate(`/events`);
       } else {
         await createEvent(eventData).unwrap();
         toast.success("Event created successfully!");
+        getAllEventsRefetch();
         navigate(`/events`);
       }
     } catch (error) {
