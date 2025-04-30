@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import {
@@ -17,16 +17,23 @@ interface EventFormData {
   endTime: string;
   description: string;
   isPrivate: boolean;
+  logo: string;
 }
 
 const CreateEvent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+
   const {
     register,
+
     handleSubmit,
     reset,
-    watch,
+
     formState: { errors },
   } = useForm<EventFormData>();
 
@@ -38,6 +45,81 @@ const CreateEvent = () => {
       skip: !id,
     }
   );
+
+  const handleLogoUpload = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/gif";
+
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          setLogoUploading(true);
+          // First show preview
+          const reader = new FileReader();
+          reader.onload = () => {
+            setLogoPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+
+          // Create timestamp for signature
+          const timestamp = Math.round(new Date().getTime() / 1000).toString();
+
+          // Create the string to sign
+          const str_to_sign = `timestamp=${timestamp}${
+            import.meta.env.VITE_CLOUDINARY_API_SECRET
+          }`;
+
+          // Generate SHA-1 signature
+          const signature = await generateSHA1(str_to_sign);
+
+          // Upload to Cloudinary using signed upload
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+          formData.append("timestamp", timestamp);
+          formData.append("signature", signature);
+
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${
+              import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+            }/image/upload`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || "Upload failed");
+          }
+
+          const data = await response.json();
+          setLogoUrl(data.secure_url);
+          toast.success("Logo uploaded successfully!");
+        } catch (error) {
+          console.error("Failed to upload logo:", error);
+          toast.error("Failed to upload logo. Please try again.");
+        } finally {
+          setLogoUploading(false); // Upload complete
+        }
+      }
+    };
+
+    input.click();
+  };
+
+  const generateSHA1 = async (message: string) => {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex;
+  };
 
   // Format time from ISO string to HH:MM format
   const formatTime = (isoString: string) => {
@@ -62,12 +144,17 @@ const CreateEvent = () => {
         description: event.description,
         isPrivate: event.isPrivate,
       });
+
+      if (eventResponse?.event?.image) {
+        setLogoUrl(eventResponse.event.image);
+        setLogoPreview(eventResponse.event.image);
+      }
     } else if (!id) {
       // Reset to default values when creating new event
       reset({
         title: "",
         host: "",
-        type: "drag-show",
+        type: "",
         theme: "",
         startTime: "19:00",
         endTime: "20:00",
@@ -94,16 +181,17 @@ const CreateEvent = () => {
         ...data,
         startTime: startDate.toISOString(),
         endTime: endDate.toISOString(),
+        image: logoUrl,
       };
 
       if (id) {
         await updateEvent({ id, ...eventData }).unwrap();
         toast.success("Event updated successfully!");
-        navigate(`/events/${id}`);
+        navigate(`/events`);
       } else {
-        const result = await createEvent(eventData).unwrap();
+        await createEvent(eventData).unwrap();
         toast.success("Event created successfully!");
-        navigate(`/events/${result._id}`);
+        navigate(`/events`);
       }
     } catch (error) {
       console.error("Error saving event:", error);
@@ -165,15 +253,32 @@ const CreateEvent = () => {
             Event type*
           </label>
           <select
+            required
+            defaultValue=""
             {...register("type", { required: "Event type is required" })}
-            className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500 appearance-none"
+            className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500 appearance-none invalid:text-gray-500"
           >
-            <option value="drag-show">Drag show</option>
-            <option value="comedy-show">Comedy Show</option>
-            <option value="music-concert">Music Concert</option>
-            <option value="dance-performance">Dance Performance</option>
-            <option value="theater-show">Theater Show</option>
-            <option value="other">Other</option>
+            <option value="" disabled hidden>
+              Select
+            </option>
+            <option value="drag-show" className="text-white">
+              Drag show
+            </option>
+            <option value="comedy-show" className="text-white">
+              Comedy Show
+            </option>
+            <option value="music-concert" className="text-white">
+              Music Concert
+            </option>
+            <option value="dance-performance" className="text-white">
+              Dance Performance
+            </option>
+            <option value="theater-show" className="text-white">
+              Theater Show
+            </option>
+            <option value="other" className="text-white">
+              Other
+            </option>
           </select>
           <div className="absolute right-3 top-[45px] pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -261,10 +366,10 @@ const CreateEvent = () => {
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
-              {...register("isPrivate")}
               type="radio"
+              {...register("isPrivate")}
               value="false"
-              checked={watch("isPrivate") === true}
+              checked
               className="w-5 h-5 text-[#FF00A2] focus:ring-[#FF00A2]"
             />
             <span className="text-white font-space-grotesk text-sm md:text-base">
@@ -273,10 +378,9 @@ const CreateEvent = () => {
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
-              {...register("isPrivate")}
               type="radio"
+              {...register("isPrivate")}
               value="true"
-              checked={watch("isPrivate") === false}
               className="w-5 h-5 text-[#FF00A2] focus:ring-[#FF00A2]"
             />
             <span className="text-white font-space-grotesk text-sm md:text-base">
@@ -285,9 +389,46 @@ const CreateEvent = () => {
           </label>
         </div>
 
+        {/* Logo Upload */}
+        <div className="w-full max-w-[782px] self-center bg-black p-4">
+          <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
+            Upload Logo
+          </h2>
+
+          <div
+            className="bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center 
+               cursor-pointer"
+            onClick={handleLogoUpload}
+          >
+            {logoPreview ? (
+              <div className="flex flex-col items-center">
+                <img
+                  src={logoPreview}
+                  alt="Venue Logo"
+                  className="w-32 h-32 object-contain mb-4"
+                />
+                <p className="text-[#FF00A2]">Click to change logo</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-2">
+                  Please Upload The Venue Logo In PNG Or JPG Format, With A
+                  Recommended Size
+                </p>
+                <p className="text-[#3D3D3D] font-['Space_Grotesk'] text-[12px] leading-[100%] tracking-[0%] text-center capitalize mb-4">
+                  Of [Specify Dimensions, E.G., 500x500px]
+                </p>
+                <div className="bg-[#FF00A2] text-black rounded-lg px-8 py-3 inline-block font-['Space_Grotesk'] text-[16px] leading-[100%] tracking-[0%] text-center capitalize">
+                  Upload
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
         <button
           type="submit"
-          disabled={isCreating || isUpdating}
+          disabled={isCreating || isUpdating || logoUploading}
           className="mt-4 bg-[#FF00A2] text-white font-space-grotesk text-base py-2 px-12 rounded-full hover:bg-pink-600 transition-colors w-fit ml-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isCreating || isUpdating ? (

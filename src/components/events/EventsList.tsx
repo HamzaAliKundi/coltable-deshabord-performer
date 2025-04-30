@@ -151,7 +151,7 @@ const EventsList: React.FC<EventsListProps> = ({
                     )}
                   </button>
                   <button
-                    onClick={() => navigate(`/event/detail/${event._id}`)}
+                    onClick={() => navigate(`/event/create-event/${event._id}`)}
                     className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]"
                   >
                     EDIT EVENT

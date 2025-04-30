@@ -3,6 +3,7 @@ import { useGetEventByIdQuery, useDeleteEventMutation } from "../../apis/event";
 import { format } from "date-fns";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { Anchor, Omega } from "lucide-react";
 
 interface EventDetailProps {
   eventId: string | undefined;
@@ -95,25 +96,28 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
               </div>
 
               <div className="flex items-center gap-2">
-                <img src="/events/type.svg" alt="Type" className="w-4 h-4" />
+                <Anchor color="#FF00A2" size={16} />
                 <p className="font-['Space_Grotesk'] text-white">
                   {event?.type}
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <img src="/events/theme.svg" alt="Theme" className="w-4 h-4" />
+                <Omega color="#FF00A2" size={16} />
                 <p className="font-['Space_Grotesk'] text-white">
                   {event?.theme}
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-white font-['Space_Grotesk'] font-bold text-lg">
-                Description
-              </h2>
-              <p className="font-['Space_Grotesk'] text-white">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Omega color="#FF00A2" size={20} />
+                <h2 className="text-white font-['Space_Grotesk'] font-bold text-lg">
+                  Description:
+                </h2>
+              </div>
+              <p className="font-['Space_Grotesk'] text-white ml-7">
                 {event?.description}
               </p>
             </div>
