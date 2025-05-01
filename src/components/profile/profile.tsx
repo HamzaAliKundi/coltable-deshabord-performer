@@ -231,21 +231,22 @@ const Profile = () => {
   useEffect(() => {
     if (profileData?.user) {
       const formData = {
-        displayName: profileData.user.name,
+        // displayName: profileData.user.name,
         dragName: profileData.user.fullDragName,
         tagline: profileData.user.tagline,
         about: profileData.user.description,
         pronouns: profileData.user.pronoun,
         city: profileData.user.city,
         dragAnniversary: profileData.user.dragAnniversary?.split("T")[0], // Format date to YYYY-MM-DD
-        dragMother: profileData.user.dragMotherName,
+        dragMother: profileData.user.dragMotherName || [],
+        dragFamilyAssociation: profileData.user.dragFamilyAssociation || [],
         aesthetic: profileData.user.dragPerformerName,
-        competitions: profileData.user.awards?.join(", "),
+        competitions: profileData.user.awards || [],
         performances: profileData.user.dragPerformances?.map((p: any) => ({
           value: p,
           label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
         })),
-        illusions: profileData.user.illusions,
+        illusions: profileData.user.illusions || [],
         musicGenres: profileData.user.genres?.map((g: any) => ({
           value: g,
           label: g.charAt(0).toUpperCase() + g.slice(1).replace("-", " "),
@@ -298,20 +299,21 @@ const Profile = () => {
   const onSubmit = async (data: any) => {
     try {
       const transformedData = {
-        name: data.displayName,
+        // name: data.displayName,
         fullDragName: data.dragName,
         tagline: data.tagline,
         description: data.about,
         pronoun: data.pronouns,
         city: data.city,
         dragAnniversary: data.dragAnniversary,
-        dragMotherName: data.dragMother,
-        dragPerformerName: data.displayName,
-        awards: data.competitions,
+        dragMotherName: Array.isArray(data.dragMother) ? data.dragMother : [],
+        dragFamilyAssociation: Array.isArray(data.dragFamilyAssociation) ? data.dragFamilyAssociation : [],
+        // dragPerformerName: data.displayName,
+        awards: Array.isArray(data.competitions) ? data.competitions : [],
         dragPerformances: data.performances
           ? data.performances.map((item: any) => item.value)
           : [],
-        illusions: data.illusions,
+        illusions: Array.isArray(data.illusions) ? data.illusions : [],
         genres: data.musicGenres
           ? data.musicGenres.map((item: any) => item.value)
           : [],
@@ -439,7 +441,7 @@ const Profile = () => {
           className="space-y-4 md:space-y-6"
         >
           {/* Name */}
-          <div className="relative">
+          {/* <div className="relative">
             <label className={labelClass}>
               How Would You Like Your Name To Appear On Your Profile?*
             </label>
@@ -450,7 +452,7 @@ const Profile = () => {
               disabled={!isEditing}
               {...register("displayName", { required: true })}
             />
-          </div>
+          </div> */}
 
           {/* Drag Name */}
           <div>
@@ -544,12 +546,108 @@ const Profile = () => {
           {/* Drag Mother */}
           <div>
             <label className={labelClass}>Drag Mother(s)?</label>
-            <input
-              type="text"
-              placeholder="Enter drag mother's name"
-              className={inputClass}
-              disabled={!isEditing}
-              {...register("dragMother")}
+            <Controller
+              name="dragMother"
+              control={control}
+              render={({ field }) => (
+                <div className="w-full max-w-[782px]">
+                  <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
+                    {(Array.isArray(field.value) ? field.value : []).map((mother: string, index: number) => (
+                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
+                        <span className="text-white">{mother}</span>
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const mothers = Array.isArray(field.value) ? [...field.value] : [];
+                              mothers.splice(index, 1);
+                              field.onChange(mothers);
+                            }}
+                            className="text-white hover:text-[#FF00A2]"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {isEditing && (
+                      <input
+                        type="text"
+                        placeholder="Type and press Enter"
+                        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value) {
+                              const currentMothers = Array.isArray(field.value) ? [...field.value] : [];
+                              if (!currentMothers.includes(value)) {
+                                field.onChange([...currentMothers, value]);
+                              }
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Drag Family Association */}
+          <div>
+            <label className={labelClass}>Drag Family Association(s)?</label>
+            <Controller
+              name="dragFamilyAssociation"
+              control={control}
+              render={({ field }) => (
+                <div className="w-full max-w-[782px]">
+                  <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
+                    {(Array.isArray(field.value) ? field.value : []).map((family: string, index: number) => (
+                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
+                        <span className="text-white">{family}</span>
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const families = Array.isArray(field.value) ? [...field.value] : [];
+                              families.splice(index, 1);
+                              field.onChange(families);
+                            }}
+                            className="text-white hover:text-[#FF00A2]"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {isEditing && (
+                      <input
+                        type="text"
+                        placeholder="Type and press Enter"
+                        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value) {
+                              const currentFamilies = Array.isArray(field.value) ? [...field.value] : [];
+                              if (!currentFamilies.includes(value)) {
+                                field.onChange([...currentFamilies, value]);
+                              }
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
             />
           </div>
 
@@ -576,12 +674,54 @@ const Profile = () => {
             <label className={labelClass}>
               Competitions and Awards you want to mention?
             </label>
-            <input
-              type="text"
-              placeholder="Enter your achievements"
-              className={inputClass}
-              disabled={!isEditing}
-              {...register("competitions")}
+            <Controller
+              name="competitions"
+              control={control}
+              render={({ field }) => (
+                <div className="w-full max-w-[782px]">
+                  <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
+                    {(Array.isArray(field.value) ? field.value : []).map((award: string, index: number) => (
+                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
+                        <span className="text-white">{award}</span>
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const awards = Array.isArray(field.value) ? [...field.value] : [];
+                              awards.splice(index, 1);
+                              field.onChange(awards);
+                            }}
+                            className="text-white hover:text-[#FF00A2]"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {isEditing && (
+                      <input
+                        type="text"
+                        placeholder="Type and press Enter"
+                        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value) {
+                              const currentAwards = Array.isArray(field.value) ? [...field.value] : [];
+                              if (!currentAwards.includes(value)) {
+                                field.onChange([...currentAwards, value]);
+                              }
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
             />
           </div>
 
@@ -678,12 +818,54 @@ const Profile = () => {
             <label className={labelClass}>
               Do you have any Illusions/Impersonations you Perform?
             </label>
-            <input
-              type="text"
-              placeholder="Enter your illusions/impersonations"
-              className={inputClass}
-              disabled={!isEditing}
-              {...register("illusions")}
+            <Controller
+              name="illusions"
+              control={control}
+              render={({ field }) => (
+                <div className="w-full max-w-[782px]">
+                  <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
+                    {(Array.isArray(field.value) ? field.value : []).map((illusion: string, index: number) => (
+                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
+                        <span className="text-white">{illusion}</span>
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const illusions = Array.isArray(field.value) ? [...field.value] : [];
+                              illusions.splice(index, 1);
+                              field.onChange(illusions);
+                            }}
+                            className="text-white hover:text-[#FF00A2]"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {isEditing && (
+                      <input
+                        type="text"
+                        placeholder="Type and press Enter"
+                        className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.target as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value) {
+                              const currentIllusions = Array.isArray(field.value) ? [...field.value] : [];
+                              if (!currentIllusions.includes(value)) {
+                                field.onChange([...currentIllusions, value]);
+                              }
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
             />
           </div>
 
@@ -1050,7 +1232,7 @@ const Profile = () => {
           {/* Upload Logo */}
           <div className="w-full max-w-[782px] bg-black p-4">
             <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
-              Upload Logo
+              Upload Profile Picture
             </h2>
 
             <div
@@ -1063,7 +1245,7 @@ const Profile = () => {
                 <div className="flex flex-col items-center">
                   <img
                     src={logoPreview}
-                    alt="Venue Logo"
+                    alt="Profile Picture"
                     className="w-32 h-32 object-contain mb-4"
                   />
                   {/* <p className="text-[#FF00A2]">Click to change logo</p> */}
