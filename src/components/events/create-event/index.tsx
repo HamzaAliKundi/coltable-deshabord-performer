@@ -143,7 +143,7 @@ const CreateEvent = () => {
         title: event.title,
         host: event.host,
         type: event.type,
-        theme: event.theme,
+        // theme: event.theme,
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
@@ -160,7 +160,7 @@ const CreateEvent = () => {
         title: "",
         host: "",
         type: "",
-        theme: "",
+        // theme: "",
         startTime: "19:00",
         endTime: "20:00",
         description: "",
@@ -303,7 +303,7 @@ const CreateEvent = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Theme*
@@ -318,7 +318,7 @@ const CreateEvent = () => {
               <span className="text-red-500">{errors.theme.message}</span>
             )}
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">

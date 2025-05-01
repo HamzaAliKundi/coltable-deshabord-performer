@@ -102,12 +102,12 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <Omega color="#FF00A2" size={16} />
                 <p className="font-['Space_Grotesk'] text-white">
                   {event?.theme}
                 </p>
-              </div>
+              </div> */}
             </div>
 
             <div className="space-y-1">
