@@ -297,6 +297,8 @@ const Profile = () => {
   }, [profileData, reset, venues]);
 
   const onSubmit = async (data: any) => {
+    console.log("object", data)
+    
     try {
       const transformedData = {
         // name: data.displayName,

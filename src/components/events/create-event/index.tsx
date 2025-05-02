@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import {
   useAddEventMutation,
+  useGetAllEventsQuery,
   useGetEventByIdQuery,
   useUpdateEventMutation,
 } from "../../../apis/event";
@@ -45,6 +46,10 @@ const CreateEvent = () => {
       skip: !id,
     }
   );
+  const { refetch: getAllEventsRefetch } = useGetAllEventsQuery({
+    limit: 1000,
+    page: 1,
+  });
 
   const handleLogoUpload = async () => {
     const input = document.createElement("input");
@@ -138,7 +143,7 @@ const CreateEvent = () => {
         title: event.title,
         host: event.host,
         type: event.type,
-        theme: event.theme,
+        // theme: event.theme,
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
@@ -155,7 +160,7 @@ const CreateEvent = () => {
         title: "",
         host: "",
         type: "",
-        theme: "",
+        // theme: "",
         startTime: "19:00",
         endTime: "20:00",
         description: "",
@@ -185,12 +190,14 @@ const CreateEvent = () => {
       };
 
       if (id) {
-        await updateEvent({ id, ...eventData }).unwrap();
+        await updateEvent({ id, eventData }).unwrap();
         toast.success("Event updated successfully!");
+        getAllEventsRefetch();
         navigate(`/events`);
       } else {
         await createEvent(eventData).unwrap();
         toast.success("Event created successfully!");
+        getAllEventsRefetch();
         navigate(`/events`);
       }
     } catch (error) {
@@ -296,7 +303,7 @@ const CreateEvent = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Theme*
@@ -311,7 +318,7 @@ const CreateEvent = () => {
               <span className="text-red-500">{errors.theme.message}</span>
             )}
           </div>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
