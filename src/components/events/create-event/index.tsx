@@ -14,6 +14,7 @@ interface EventFormData {
   host: string;
   type: string;
   theme: string;
+  startDate: string;
   startTime: string;
   endTime: string;
   description: string;
@@ -31,10 +32,8 @@ const CreateEvent = () => {
 
   const {
     register,
-
     handleSubmit,
     reset,
-
     formState: { errors },
   } = useForm<EventFormData>();
 
@@ -108,7 +107,7 @@ const CreateEvent = () => {
           console.error("Failed to upload logo:", error);
           toast.error("Failed to upload logo. Please try again.");
         } finally {
-          setLogoUploading(false); // Upload complete
+          setLogoUploading(false);
         }
       }
     };
@@ -126,7 +125,6 @@ const CreateEvent = () => {
     return hashHex;
   };
 
-  // Format time from ISO string to HH:MM format
   const formatTime = (isoString: string) => {
     if (!isoString) return "00:00";
     const date = new Date(isoString);
@@ -135,7 +133,6 @@ const CreateEvent = () => {
     return `${hours}:${minutes}`;
   };
 
-  // Reset form with fetched data when editing
   useEffect(() => {
     if (id && eventResponse) {
       const event = eventResponse?.event;
@@ -143,7 +140,7 @@ const CreateEvent = () => {
         title: event.title,
         host: event.host,
         type: event.type,
-        // theme: event.theme,
+        startDate: event.startTime ? new Date(event.startTime).toISOString().split('T')[0] : '',
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
@@ -155,12 +152,11 @@ const CreateEvent = () => {
         setLogoPreview(eventResponse.event.image);
       }
     } else if (!id) {
-      // Reset to default values when creating new event
       reset({
         title: "",
         host: "",
         type: "",
-        // theme: "",
+        startDate: new Date().toISOString().split('T')[0],
         startTime: "19:00",
         endTime: "20:00",
         description: "",
@@ -171,21 +167,20 @@ const CreateEvent = () => {
 
   const onSubmit = async (data: EventFormData) => {
     try {
-      // Create Date objects from time strings
-      const now = new Date();
-      const startDate = new Date(now);
-      const endDate = new Date(now);
+      const startDate = new Date(data.startDate);
+      const startTime = new Date(startDate);
+      const endTime = new Date(startDate);
 
       const [startHours, startMinutes] = data.startTime.split(":").map(Number);
       const [endHours, endMinutes] = data.endTime.split(":").map(Number);
 
-      startDate.setHours(startHours, startMinutes, 0, 0);
-      endDate.setHours(endHours, endMinutes, 0, 0);
+      startTime.setHours(startHours, startMinutes, 0, 0);
+      endTime.setHours(endHours, endMinutes, 0, 0);
 
       const eventData = {
         ...data,
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString(),
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         image: logoUrl,
       };
 
@@ -303,22 +298,19 @@ const CreateEvent = () => {
           )}
         </div>
 
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-white font-space-grotesk text-sm md:text-base">
-              Event Theme*
-            </label>
-            <input
-              {...register("theme", { required: "Event theme is required" })}
-              type="text"
-              placeholder="Event Theme..."
-              className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
-            />
-            {errors.theme && (
-              <span className="text-red-500">{errors.theme.message}</span>
-            )}
-          </div>
-        </div> */}
+        <div className="flex flex-col gap-2">
+          <label className="text-white font-space-grotesk text-sm md:text-base">
+            Event Start Date*
+          </label>
+          <input
+            {...register("startDate", { required: "Start date is required" })}
+            type="date"
+            className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500"
+          />
+          {errors.startDate && (
+            <span className="text-red-500">{errors.startDate.message}</span>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
@@ -396,15 +388,13 @@ const CreateEvent = () => {
           </label>
         </div>
 
-        {/* Logo Upload */}
         <div className="w-full max-w-[782px] self-center bg-black p-4">
           <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
             Upload Logo
           </h2>
 
           <div
-            className="bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center 
-               cursor-pointer"
+            className="bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center cursor-pointer"
             onClick={handleLogoUpload}
           >
             {logoPreview ? (
