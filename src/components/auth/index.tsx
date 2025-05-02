@@ -29,6 +29,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     setIsLoading(true);
     try {
       const res:any = await login(data);
+
       if(res?.data?.success === true) {
         localStorage.setItem("token", res?.data?.token);
         toast.success("Login successful");

@@ -15,6 +15,10 @@ import Privacy from './components/privacy';
 import Terms from './components/terms';
 import CalendarPage from "./pages/calendar";
 import EventDetailPage from './pages/events/event-detail';
+import VerificationSuccess from "./components/auth/VerificationSuccess";
+import EmailVerification from "./components/auth/EmailVerification";
+import ResetPassword from "./components/auth/reset-password";
+import ForgotPassword from "./components/auth/forgot-password";
 
 function App() {
   return (
@@ -23,6 +27,10 @@ function App() {
       <Routes>
         <Route element={<PublicRoutes />}>
           <Route path="/" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verification-success" element={<VerificationSuccess />} />
         </Route>
 
         <Route element={<ProtectedRoutes />}>

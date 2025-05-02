@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import LoginModal from './index';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useSignupMutation } from "../../apis/auth";
 
@@ -12,6 +12,7 @@ const Signup = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [signup] = useSignupMutation();
+  const navigate = useNavigate();
   
   const {
     register,
@@ -26,7 +27,7 @@ const Signup = () => {
     try {
       const res:any = await signup(data);
       if(res?.data?.success === true) {
-        toast.success("Signup successful, login Now");
+        navigate("/verify-email");
       } else {
         toast.error(res?.error?.data?.error);
       }
