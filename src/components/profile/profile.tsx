@@ -240,7 +240,7 @@ const Profile = () => {
         dragAnniversary: profileData.user.dragAnniversary?.split("T")[0], // Format date to YYYY-MM-DD
         dragMother: profileData.user.dragMotherName || [],
         dragFamilyAssociation: profileData.user.dragFamilyAssociation || [],
-        aesthetic: profileData.user.dragPerformerName,
+        aesthetic: profileData.user.aesthetic,
         competitions: profileData.user.awards || [],
         performances: profileData.user.dragPerformances?.map((p: any) => ({
           value: p,
@@ -297,8 +297,6 @@ const Profile = () => {
   }, [profileData, reset, venues]);
 
   const onSubmit = async (data: any) => {
-    console.log("object", data)
-    
     try {
       const transformedData = {
         // name: data.displayName,
@@ -306,6 +304,7 @@ const Profile = () => {
         tagline: data.tagline,
         description: data.about,
         pronoun: data.pronouns,
+        aesthetic: data.aesthetic,
         city: data.city,
         dragAnniversary: data.dragAnniversary,
         dragMotherName: Array.isArray(data.dragMother) ? data.dragMother : [],
