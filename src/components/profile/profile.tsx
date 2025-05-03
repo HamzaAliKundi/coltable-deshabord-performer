@@ -255,13 +255,14 @@ const Profile = () => {
           value: v,
           label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
         })),
-        hosts: profileData.user.hosts?.map((hostId: string) => {
-          const venue = venues?.find((v: any) => v._id === hostId);
-          return {
-            value: hostId,
-            label: venue?.name || hostId
-          };
-        }) || [],
+        hosts:
+          profileData.user.hosts?.map((hostId: string) => {
+            const venue = venues?.find((v: any) => v._id === hostId);
+            return {
+              value: hostId,
+              label: venue?.name || hostId,
+            };
+          }) || [],
         privateEvents: profileData.user.receivePrivateEventRequests
           ? "yes"
           : "no",
@@ -280,11 +281,14 @@ const Profile = () => {
         setImages(imagePreviews);
         setMediaPreviews(imagePreviews);
       }
-      
+
       if (profileData.user.videos) {
-        const videoPreviews = profileData.user.videos.map((url: string) => ({ url, type: "video" }));
+        const videoPreviews = profileData.user.videos.map((url: string) => ({
+          url,
+          type: "video",
+        }));
         setVideos(profileData.user.videos);
-        setMediaPreviews(prev => [...prev, ...videoPreviews]);
+        setMediaPreviews((prev) => [...prev, ...videoPreviews]);
       }
 
       if (profileData.user.profilePhoto) {
@@ -308,7 +312,9 @@ const Profile = () => {
         city: data.city,
         dragAnniversary: data.dragAnniversary,
         dragMotherName: Array.isArray(data.dragMother) ? data.dragMother : [],
-        dragFamilyAssociation: Array.isArray(data.dragFamilyAssociation) ? data.dragFamilyAssociation : [],
+        dragFamilyAssociation: Array.isArray(data.dragFamilyAssociation)
+          ? data.dragFamilyAssociation
+          : [],
         // dragPerformerName: data.displayName,
         awards: Array.isArray(data.competitions) ? data.competitions : [],
         dragPerformances: data.performances
@@ -322,7 +328,7 @@ const Profile = () => {
         hosts: data.hosts ? data.hosts.map((item: any) => item.value) : [],
         receiveVenueBookingMessages: data.venueMessages === "yes",
         receivePrivateEventRequests: data.privateEvents === "yes",
-      
+
         profilePhoto: logoUrl,
         images: images.filter((url) => url !== ""),
         videos: videos.filter((url) => url !== ""),
@@ -352,7 +358,7 @@ const Profile = () => {
     );
 
   const inputClass =
-    "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-[#383838] px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
+    "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-white px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
   const labelClass =
     "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[20px] leading-[100%] capitalize text-white mb-2";
 
@@ -553,40 +559,49 @@ const Profile = () => {
               render={({ field }) => (
                 <div className="w-full max-w-[782px]">
                   <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
-                    {(Array.isArray(field.value) ? field.value : []).map((mother: string, index: number) => (
-                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
-                        <span className="text-white">{mother}</span>
-                        {isEditing && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const mothers = Array.isArray(field.value) ? [...field.value] : [];
-                              mothers.splice(index, 1);
-                              field.onChange(mothers);
-                            }}
-                            className="text-white hover:text-[#FF00A2]"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {(Array.isArray(field.value) ? field.value : []).map(
+                      (mother: string, index: number) => (
+                        <div
+                          key={index}
+                          className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2"
+                        >
+                          <span className="text-white">{mother}</span>
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const mothers = Array.isArray(field.value)
+                                  ? [...field.value]
+                                  : [];
+                                mothers.splice(index, 1);
+                                field.onChange(mothers);
+                              }}
+                              className="text-white hover:text-[#FF00A2]"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      )
+                    )}
                     {isEditing && (
                       <input
                         type="text"
                         placeholder="Type and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const value = input.value.trim();
                             if (value) {
-                              const currentMothers = Array.isArray(field.value) ? [...field.value] : [];
+                              const currentMothers = Array.isArray(field.value)
+                                ? [...field.value]
+                                : [];
                               if (!currentMothers.includes(value)) {
                                 field.onChange([...currentMothers, value]);
                               }
-                              input.value = '';
+                              input.value = "";
                             }
                           }
                         }}
@@ -607,40 +622,49 @@ const Profile = () => {
               render={({ field }) => (
                 <div className="w-full max-w-[782px]">
                   <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
-                    {(Array.isArray(field.value) ? field.value : []).map((family: string, index: number) => (
-                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
-                        <span className="text-white">{family}</span>
-                        {isEditing && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const families = Array.isArray(field.value) ? [...field.value] : [];
-                              families.splice(index, 1);
-                              field.onChange(families);
-                            }}
-                            className="text-white hover:text-[#FF00A2]"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {(Array.isArray(field.value) ? field.value : []).map(
+                      (family: string, index: number) => (
+                        <div
+                          key={index}
+                          className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2"
+                        >
+                          <span className="text-white">{family}</span>
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const families = Array.isArray(field.value)
+                                  ? [...field.value]
+                                  : [];
+                                families.splice(index, 1);
+                                field.onChange(families);
+                              }}
+                              className="text-white hover:text-[#FF00A2]"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      )
+                    )}
                     {isEditing && (
                       <input
                         type="text"
                         placeholder="Type and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const value = input.value.trim();
                             if (value) {
-                              const currentFamilies = Array.isArray(field.value) ? [...field.value] : [];
+                              const currentFamilies = Array.isArray(field.value)
+                                ? [...field.value]
+                                : [];
                               if (!currentFamilies.includes(value)) {
                                 field.onChange([...currentFamilies, value]);
                               }
-                              input.value = '';
+                              input.value = "";
                             }
                           }
                         }}
@@ -681,40 +705,49 @@ const Profile = () => {
               render={({ field }) => (
                 <div className="w-full max-w-[782px]">
                   <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
-                    {(Array.isArray(field.value) ? field.value : []).map((award: string, index: number) => (
-                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
-                        <span className="text-white">{award}</span>
-                        {isEditing && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const awards = Array.isArray(field.value) ? [...field.value] : [];
-                              awards.splice(index, 1);
-                              field.onChange(awards);
-                            }}
-                            className="text-white hover:text-[#FF00A2]"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {(Array.isArray(field.value) ? field.value : []).map(
+                      (award: string, index: number) => (
+                        <div
+                          key={index}
+                          className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2"
+                        >
+                          <span className="text-white">{award}</span>
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const awards = Array.isArray(field.value)
+                                  ? [...field.value]
+                                  : [];
+                                awards.splice(index, 1);
+                                field.onChange(awards);
+                              }}
+                              className="text-white hover:text-[#FF00A2]"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      )
+                    )}
                     {isEditing && (
                       <input
                         type="text"
                         placeholder="Type and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const value = input.value.trim();
                             if (value) {
-                              const currentAwards = Array.isArray(field.value) ? [...field.value] : [];
+                              const currentAwards = Array.isArray(field.value)
+                                ? [...field.value]
+                                : [];
                               if (!currentAwards.includes(value)) {
                                 field.onChange([...currentAwards, value]);
                               }
-                              input.value = '';
+                              input.value = "";
                             }
                           }
                         }}
@@ -825,40 +858,51 @@ const Profile = () => {
               render={({ field }) => (
                 <div className="w-full max-w-[782px]">
                   <div className="min-h-[46px] bg-[#0D0D0D] border border-[#383838] rounded-[16px] p-2 flex flex-wrap gap-2">
-                    {(Array.isArray(field.value) ? field.value : []).map((illusion: string, index: number) => (
-                      <div key={index} className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2">
-                        <span className="text-white">{illusion}</span>
-                        {isEditing && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const illusions = Array.isArray(field.value) ? [...field.value] : [];
-                              illusions.splice(index, 1);
-                              field.onChange(illusions);
-                            }}
-                            className="text-white hover:text-[#FF00A2]"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    {(Array.isArray(field.value) ? field.value : []).map(
+                      (illusion: string, index: number) => (
+                        <div
+                          key={index}
+                          className="bg-[#383838] rounded-[4px] px-2 py-1 flex items-center gap-2"
+                        >
+                          <span className="text-white">{illusion}</span>
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const illusions = Array.isArray(field.value)
+                                  ? [...field.value]
+                                  : [];
+                                illusions.splice(index, 1);
+                                field.onChange(illusions);
+                              }}
+                              className="text-white hover:text-[#FF00A2]"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      )
+                    )}
                     {isEditing && (
                       <input
                         type="text"
                         placeholder="Type and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             const input = e.target as HTMLInputElement;
                             const value = input.value.trim();
                             if (value) {
-                              const currentIllusions = Array.isArray(field.value) ? [...field.value] : [];
+                              const currentIllusions = Array.isArray(
+                                field.value
+                              )
+                                ? [...field.value]
+                                : [];
                               if (!currentIllusions.includes(value)) {
                                 field.onChange([...currentIllusions, value]);
                               }
-                              input.value = '';
+                              input.value = "";
                             }
                           }
                         }}
@@ -1079,7 +1123,7 @@ const Profile = () => {
                   closeMenuOnSelect={false}
                   options={venues?.map((venue: any) => ({
                     value: venue._id,
-                    label: venue.name
+                    label: venue.name,
                   }))}
                   className="w-full max-w-[782px]"
                   styles={{

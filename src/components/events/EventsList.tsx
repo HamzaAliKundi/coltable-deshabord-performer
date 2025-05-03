@@ -12,10 +12,12 @@ interface Event {
   theme: string;
   startTime: string;
   endTime: string;
+  startDate: string;
   description: string;
   isPrivate: boolean;
   status: string;
   image?: string;
+  location: string;
 }
 
 interface EventsListProps {
@@ -32,7 +34,6 @@ const EventsList: React.FC<EventsListProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  
 }) => {
   const [expandedTitle, setExpandedTitle] = React.useState<string | null>(null);
   const navigate = useNavigate();
@@ -41,12 +42,27 @@ const EventsList: React.FC<EventsListProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
-    });
+    };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+
+  const extractTime = (dateString: string) => {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+
+    return `${hours}:${minutes} ${ampm}`;
   };
 
   const handleDelete = async (eventId: string) => {
@@ -82,12 +98,20 @@ const EventsList: React.FC<EventsListProps> = ({
             key={event._id}
             className="bg-[#212121] mt-7 rounded-[8px] overflow-hidden w-full max-w-[300px] flex flex-col"
           >
-            <div className="p-2">
+            <div className="p-2 relative">
               <img
                 src={event?.image}
                 alt="Event"
                 className="w-full h-[220px] rounded-[8px] object-cover"
               />
+              <div className="absolute top-3 left-3 w-[70px] h-[70px] bg-gradient-to-b from-[#FF00A2] to-[#D876B5] rounded-full flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-[#e3d4de] leading-none">
+                  {formatDate(event.startDate)?.slice(3, 6)}
+                </span>
+                <span className="text-lg font-semibold text-[#ebd4e3] uppercase leading-none">
+                  {formatDate(event.startDate)?.slice(0, 3)}
+                </span>
+              </div>
             </div>
 
             <div className="p-3 flex flex-col">
@@ -110,7 +134,7 @@ const EventsList: React.FC<EventsListProps> = ({
                 <div className="flex items-center gap-2">
                   <img src="/events/time.svg" alt="Time" className="w-4 h-4" />
                   <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
-                    {formatDate(event.startTime)} - {formatDate(event.endTime)}
+                    Starts: {extractTime(event.startTime)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
@@ -120,7 +144,7 @@ const EventsList: React.FC<EventsListProps> = ({
                     className="w-4 h-4"
                   />
                   <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
-                    {event.host}
+                    {event.location || "N/A"}
                   </p>
                 </div>
               </div>
