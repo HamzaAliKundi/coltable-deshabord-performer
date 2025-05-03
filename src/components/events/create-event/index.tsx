@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import {
   useAddEventMutation,
@@ -8,6 +8,8 @@ import {
   useUpdateEventMutation,
 } from "../../../apis/event";
 import { useParams, useNavigate } from "react-router-dom";
+import { eventOptions } from "../../../utils/create-event/dropDownData";
+import CustomSelect from "../../../utils/CustomSelect";
 
 interface EventFormData {
   title: string;
@@ -34,6 +36,7 @@ const CreateEvent = () => {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<EventFormData>();
 
@@ -140,7 +143,9 @@ const CreateEvent = () => {
         title: event.title,
         host: event.host,
         type: event.type,
-        startDate: event.startTime ? new Date(event.startTime).toISOString().split('T')[0] : '',
+        startDate: event.startDate
+          ? new Date(event.startDate).toISOString().split("T")[0]
+          : undefined,
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
@@ -156,7 +161,7 @@ const CreateEvent = () => {
         title: "",
         host: "",
         type: "",
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: new Date().toISOString().split("T")[0],
         startTime: "19:00",
         endTime: "20:00",
         description: "",
@@ -250,51 +255,31 @@ const CreateEvent = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 relative">
+        <div className="flex flex-col gap-2">
           <label className="text-white font-space-grotesk text-sm md:text-base">
             Event type*
           </label>
-          <select
-            required
-            defaultValue=""
-            {...register("type", { required: "Event type is required" })}
-            className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500 appearance-none invalid:text-gray-500"
-          >
-            <option value="" disabled hidden>
-              Select
-            </option>
-            <option value="drag-show" className="text-white">
-              Drag show
-            </option>
-            <option value="comedy-show" className="text-white">
-              Comedy Show
-            </option>
-            <option value="music-concert" className="text-white">
-              Music Concert
-            </option>
-            <option value="dance-performance" className="text-white">
-              Dance Performance
-            </option>
-            <option value="theater-show" className="text-white">
-              Theater Show
-            </option>
-            <option value="other" className="text-white">
-              Other
-            </option>
-          </select>
-          <div className="absolute right-3 top-[45px] pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M4 6L8 10L12 6"
-                stroke="#878787"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          <Controller
+            name="type"
+            control={control}
+            rules={{ required: "Event type is required" }}
+            render={({ field }) => (
+              <CustomSelect
+                {...field}
+                value={eventOptions.find(
+                  (option) => option.value === field.value
+                )}
+                onChange={(selectedOption: any) =>
+                  field.onChange(selectedOption?.value)
+                }
+                options={eventOptions}
+                isDisabled={false}
+                placeholder="Select event type"
               />
-            </svg>
-          </div>
+            )}
+          />
           {errors.type && (
-            <span className="text-red-500">{errors.type.message}</span>
+            <span className="text-red-500 text-sm">{errors.type.message}</span>
           )}
         </div>
 

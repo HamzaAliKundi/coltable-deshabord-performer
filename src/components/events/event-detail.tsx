@@ -34,6 +34,30 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
     }
   };
 
+  const formatDate = (dateString: any) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+
+  const extractTime = (dateString: any) => {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+
+    return `${hours}:${minutes} ${ampm}`;
+  };
+
   const handleEdit = () => {
     navigate(`/event/create-event/${eventId}`);
   };
@@ -75,12 +99,9 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
               <div className="flex items-center gap-2">
                 <img src="/events/time.svg" alt="Time" className="w-4 h-4" />
                 <p className="font-['Space_Grotesk'] text-white">
-                  {event?.startTime &&
-                    format(
-                      new Date(event.startTime),
-                      "MMM dd, yyyy h:mm a"
-                    )}{" "}
-                  -{event?.endTime && format(new Date(event.endTime), "h:mm a")}
+                  {formatDate(event.startDate)?.slice(0, 12)}
+                  {", "}
+                  {extractTime(event.startTime)}
                 </p>
               </div>
 
@@ -91,7 +112,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
                   className="w-4 h-4"
                 />
                 <p className="font-['Space_Grotesk'] text-white">
-                  {event?.host}
+                  {event?.location || "N/A"}
                 </p>
               </div>
 
