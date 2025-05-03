@@ -1,18 +1,26 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useForgotPasswordMutation } from "../../apis/auth";
 
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [forgotPassword] = useForgotPasswordMutation();
   const { register, handleSubmit, formState: { errors } } = useForm();
+
+  const navigate = useNavigate()
 
   const onSubmit = async (data: { email: string }) => {
     try {
       setIsLoading(true);
-      // TODO: Add API call to send reset password email
-      // const response = await sendResetPasswordEmail(data.email);
-      toast.success("Password reset link has been sent to your email");
+      const response = await forgotPassword({ email: data.email, userType: "performer" });
+      if (response?.data?.success) {
+        toast.success("Password reset link has been sent to your email");
+        navigate("email-sent")
+      } else {
+        toast.error(response?.error?.data?.error || "Failed to send reset password email");
+      }
     } catch (error) {
       console.error("Failed to send reset password email:", error);
       toast.error("Failed to send reset password email. Please try again.");
@@ -80,7 +88,7 @@ const ForgotPassword = () => {
 
           <div className="text-center">
             <Link
-              to="/login"
+              to="/"
               className="font-medium text-[#FF00A2] hover:text-[#FF00A2]/90"
             >
               Back to login

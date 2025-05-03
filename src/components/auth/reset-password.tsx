@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useResetPasswordMutation } from "../../apis/auth";
 
 const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,17 +12,24 @@ const ResetPassword = () => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const password = watch("password");
 
+  const navigate = useNavigate()
+
+  const [resetPassword] = useResetPasswordMutation();
+
   const onSubmit = async (data: { password: string; confirmPassword: string }) => {
     if (!token) {
       toast.error("Invalid reset link");
       return;
-    }
-
+    } 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      // TODO: Add API call to reset password
-      // const response = await resetPassword(token, data.password);
-      toast.success("Password has been reset successfully");
+      const response = await resetPassword({ token, newPassword: data.password, userType: "performer" });
+      if (response?.data?.success) {
+        toast.success("Password has been reset successfully");
+        navigate("password-changed")
+      } else {
+        toast.error(response?.error?.data?.error || "Failed to reset password");
+      }
     } catch (error) {
       console.error("Failed to reset password:", error);
       toast.error("Failed to reset password. Please try again.");
@@ -112,7 +120,7 @@ const ResetPassword = () => {
 
           <div className="text-center">
             <Link
-              to="/login"
+              to="/"
               className="font-medium text-[#FF00A2] hover:text-[#FF00A2]/90"
             >
               Back to login

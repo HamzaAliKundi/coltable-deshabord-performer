@@ -5,7 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { IoMdClose } from "react-icons/io";
 import { useLoginMutation } from "../../apis/auth";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -106,9 +106,9 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               </button>
             </div>
             <div className="mt-1">
-              <a href="#" className="text-[#959092] text-sm font-['Space_Grotesk'] hover:text-[#FF02A2]">
+              <Link to="/forgot-password" className="text-[#959092] text-sm font-['Space_Grotesk'] hover:text-[#FF02A2]">
                 Forgot Password?
-              </a>
+              </Link>
             </div>
           </div>
 

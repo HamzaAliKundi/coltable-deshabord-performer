@@ -19,6 +19,8 @@ import VerificationSuccess from "./components/auth/VerificationSuccess";
 import EmailVerification from "./components/auth/EmailVerification";
 import ResetPassword from "./components/auth/reset-password";
 import ForgotPassword from "./components/auth/forgot-password";
+import PasswordResetEmailSent from "./components/auth/PasswordResetEmailSent";
+import PasswordChangedSuccess from "./components/auth/PasswordChangedSuccess";
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
           <Route path="/verify-email" element={<EmailVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verification-success" element={<VerificationSuccess />} />
+          <Route path="/forgot-password/email-sent" element={<PasswordResetEmailSent />} />
+          <Route path="/reset-password/password-changed" element={<PasswordChangedSuccess />} />
         </Route>
 
         <Route element={<ProtectedRoutes />}>
