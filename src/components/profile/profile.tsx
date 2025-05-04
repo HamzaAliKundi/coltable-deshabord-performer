@@ -7,6 +7,8 @@ import {
 } from "../../apis/profile";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { pronounOptions } from "../../utils/create-event/create-profile/dropDownOptions";
+import CustomSelect from "../../utils/CustomSelect";
 
 interface MediaItem {
   url: string;
@@ -358,9 +360,9 @@ const Profile = () => {
     );
 
   const inputClass =
-    "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-white px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[20px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
+    "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-white px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[16px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
   const labelClass =
-    "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[20px] leading-[100%] capitalize text-white mb-2";
+    "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[18px] leading-[100%] capitalize text-white mb-2";
 
   // Render media preview
   // Update the renderMediaPreview function in your component
@@ -496,29 +498,26 @@ const Profile = () => {
           </div>
 
           {/* Pronouns */}
-          <div className="relative">
+          <div className="flex flex-col gap-2">
             <label className={labelClass}>Pronouns?</label>
-            <select
-              className={`${inputClass} appearance-none`}
-              disabled={!isEditing}
-              {...register("pronouns")}
-            >
-              <option value="she/her">She/Her</option>
-              <option value="he/him">He/Him</option>
-              <option value="they/them">They/Them</option>
-              <option value="other">Other</option>
-            </select>
-            <div className="absolute xl:right-4 lg:right-4 right-4 top-[30px] md:top-[36px] pointer-events-none text-[#383838]">
-              <svg width="20px" height="30px" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 6L8 10L12 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            <Controller
+              name="pronouns"
+              control={control}
+              render={({ field }) => (
+                <CustomSelect
+                  {...field}
+                  value={pronounOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                  onChange={(selectedOption: any) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  options={pronounOptions}
+                  isDisabled={!isEditing}
+                  placeholder="Select pronouns"
                 />
-              </svg>
-            </div>
+              )}
+            />
           </div>
 
           {/* City */}
