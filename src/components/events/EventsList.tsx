@@ -106,7 +106,7 @@ const EventsList: React.FC<EventsListProps> = ({
               />
               <div className="absolute top-3 left-3 w-[70px] h-[70px] bg-gradient-to-b from-[#FF00A2] to-[#D876B5] rounded-full flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-[#e3d4de] leading-none">
-                  {formatDate(event.startDate)?.slice(3, 6)}
+                {formatDate(event.startDate)?.replace(',', '').slice(3, 6)}
                 </span>
                 <span className="text-lg font-semibold text-[#ebd4e3] uppercase leading-none">
                   {formatDate(event.startDate)?.slice(0, 3)}
