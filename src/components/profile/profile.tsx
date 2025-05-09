@@ -34,7 +34,7 @@ const Profile = () => {
 
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdatePerformerProfileMutation();
-  const { data: profileData, isLoading } = useGetPerformerProfileQuery();
+  const { data: profileData, isLoading, refetch } = useGetPerformerProfileQuery();
 
   const { data: venues } = useGetAllVenuesQuery();
   console.log(venues);
@@ -344,6 +344,7 @@ const Profile = () => {
       };
 
       await updateProfile({ data: transformedData }).unwrap();
+      await refetch();
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
@@ -437,6 +438,22 @@ const Profile = () => {
 
   return (
     <>
+      {!profileData?.user?.isProfileCompleted && (
+        <div className="p-4 md:px-8 pb-4 max-w-[782px]">
+          <div className="w-full max-w-[782px] bg-[#FF00A2] text-white p-4 rounded-[16px]">
+            <div className="flex items-center gap-2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 16H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <p className="font-['Space_Grotesk'] text-[16px] leading-[100%]">
+                Please complete your profile to get approved and start receiving booking requests.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className="flex justify-end pt-16 max-w-[850px] text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase items-center gap-2 cursor-pointer"
         onClick={() => setIsEditing(!isEditing)}
@@ -586,7 +603,7 @@ const Profile = () => {
                     {isEditing && (
                       <input
                         type="text"
-                        placeholder="Type and press Enter"
+                        placeholder="Type drag mother name and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -649,7 +666,7 @@ const Profile = () => {
                     {isEditing && (
                       <input
                         type="text"
-                        placeholder="Type and press Enter"
+                        placeholder="Type family name and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -732,7 +749,7 @@ const Profile = () => {
                     {isEditing && (
                       <input
                         type="text"
-                        placeholder="Type and press Enter"
+                        placeholder="Type competition name and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -885,7 +902,7 @@ const Profile = () => {
                     {isEditing && (
                       <input
                         type="text"
-                        placeholder="Type and press Enter"
+                        placeholder="Type illusion/impersonation and press Enter"
                         className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-white placeholder-[#383838]"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
