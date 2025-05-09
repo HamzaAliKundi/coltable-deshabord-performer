@@ -516,7 +516,7 @@ const Profile = () => {
 
           {/* Pronouns */}
           <div className="flex flex-col gap-2">
-            <label className={labelClass}>Performer type?</label>
+            <label className={labelClass}>Choose Performer type?</label>
             <Controller
               name="performerType"
               control={control}
