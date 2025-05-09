@@ -237,7 +237,7 @@ const Profile = () => {
         dragName: profileData.user.fullDragName,
         tagline: profileData.user.tagline,
         about: profileData.user.description,
-        pronouns: profileData.user.pronoun,
+        performerType: profileData.user.performerType,
         city: profileData.user.city,
         dragAnniversary: profileData.user.dragAnniversary?.split("T")[0], // Format date to YYYY-MM-DD
         dragMother: profileData.user.dragMotherName || [],
@@ -309,7 +309,7 @@ const Profile = () => {
         fullDragName: data.dragName,
         tagline: data.tagline,
         description: data.about,
-        pronoun: data.pronouns,
+        performerType: data.performerType,
         aesthetic: data.aesthetic,
         city: data.city,
         dragAnniversary: data.dragAnniversary,
@@ -518,7 +518,7 @@ const Profile = () => {
           <div className="flex flex-col gap-2">
             <label className={labelClass}>Performer type?</label>
             <Controller
-              name="pronouns"
+              name="performerType"
               control={control}
               render={({ field }) => (
                 <CustomSelect
