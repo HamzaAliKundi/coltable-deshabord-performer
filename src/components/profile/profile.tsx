@@ -1032,29 +1032,129 @@ const Profile = () => {
               control={control}
               rules={{ required: true }}
               render={({ field }) => (
+                <div className="w-full max-w-[782px]">
+                  <Select
+                    {...field}
+                    isMulti
+                    isDisabled={!isEditing}
+                    closeMenuOnSelect={false}
+                    options={[
+                      { value: "jps-bar", label: "JP's Bar And Grill, Eagle" },
+                      { value: "eagle", label: "Eagle" },
+                      { value: "boheme", label: "Boheme" },
+                      { value: "rich's", label: "Rich's/The Montrose Country Club" },
+                      { value: "hamburger-marys", label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)" },
+                      { value: "crush", label: "Crush (Dallas, TX)" },
+                      { value: "havana", label: "Havana (Dallas TX)" },
+                      { value: "woodlawn", label: "Woodlawn Pointe (San Antonio, TX)" },
+                      { value: "custom", label: "+ Add Custom Venue", isCustom: true }
+                    ]}
+                    className="w-full max-w-[782px]"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: "46px",
+                        background: "#0D0D0D",
+                        border: "1px solid #383838",
+                        borderRadius: "16px",
+                        boxShadow: "none",
+                        "&:hover": {
+                          border: "1px solid #383838",
+                        },
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        background: "#1D1D1D",
+                        border: "1px solid #383838",
+                        borderRadius: "4px",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isFocused ? "#383838" : "#1D1D1D",
+                        color: "#fff",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        "&::before": {
+                          content: '""',
+                          display: "block",
+                          width: "16px",
+                          height: "16px",
+                          border: "2px solid #fff",
+                          borderRadius: "50%",
+                          backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                        },
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: "#383838",
+                        borderRadius: "4px",
+                      }),
+                      multiValueLabel: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                      multiValueRemove: (base) => ({
+                        ...base,
+                        color: "#fff",
+                        ":hover": {
+                          background: "#4a4a4a",
+                          borderRadius: "0 4px 4px 0",
+                        },
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                    }}
+                    placeholder="Select venues"
+                    onChange={(selectedOptions) => {
+                      const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                      if (lastOption?.isCustom) {
+                        const customValue = prompt("Enter custom venue name:");
+                        if (customValue?.trim()) {
+                          const newVenue = {
+                            value: customValue.toLowerCase().replace(/\s+/g, '-'),
+                            label: customValue.trim()
+                          };
+                          const currentVenues = Array.isArray(field.value) ? [...field.value] : [];
+                          if (!currentVenues.some(v => 
+                            (typeof v === 'object' ? v.label : v) === customValue.trim()
+                          )) {
+                            field.onChange([...currentVenues, newVenue]);
+                          }
+                        }
+                        return;
+                      }
+                      field.onChange(selectedOptions);
+                    }}
+                  />
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Hosts */}
+          <div>
+            <label className={labelClass}>
+              Hosts/Hostesses/Showrunners that you have worked with!
+            </label>
+            <Controller
+              name="hosts"
+              control={control}
+              render={({ field }) => (
                 <Select
                   {...field}
                   isMulti
                   isDisabled={!isEditing}
                   closeMenuOnSelect={false}
                   options={[
-                    { value: "jps-bar", label: "JP's Bar And Grill, Eagle" },
-                    { value: "eagle", label: "Eagle" },
-                    { value: "boheme", label: "Boheme" },
-                    {
-                      value: "rich's",
-                      label: "Rich's/The Montrose Country Club",
-                    },
-                    {
-                      value: "hamburger-marys",
-                      label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)",
-                    },
-                    { value: "crush", label: "Crush (Dallas, TX)" },
-                    { value: "havana", label: "Havana (Dallas TX)" },
-                    {
-                      value: "woodlawn",
-                      label: "Woodlawn Pointe (San Antonio, TX)",
-                    },
+                    ...(venues?.map((venue: any) => ({
+                      value: venue._id,
+                      label: venue.name,
+                    })) || []),
+                    { value: "custom", label: "+ Add Custom Host", isCustom: true }
                   ]}
                   className="w-full max-w-[782px]"
                   styles={{
@@ -1090,94 +1190,7 @@ const Profile = () => {
                         height: "16px",
                         border: "2px solid #fff",
                         borderRadius: "50%",
-                        backgroundColor: state.isSelected
-                          ? "#FF00A2"
-                          : "transparent",
-                      },
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      background: "#383838",
-                      borderRadius: "4px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "#fff",
-                      ":hover": {
-                        background: "#4a4a4a",
-                        borderRadius: "0 4px 4px 0",
-                      },
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                  }}
-                  placeholder="Select venues"
-                />
-              )}
-            />
-          </div>
-
-          {/* Hosts */}
-          <div>
-            <label className={labelClass}>
-              Hosts/Hostesses/Showrunners that you have worked with!
-            </label>
-            <Controller
-              name="hosts"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isMulti
-                  isDisabled={!isEditing}
-                  closeMenuOnSelect={false}
-                  options={venues?.map((venue: any) => ({
-                    value: venue._id,
-                    label: venue.name,
-                  }))}
-                  className="w-full max-w-[782px]"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: "46px",
-                      background: "#0D0D0D",
-                      border: "1px solid #383838",
-                      borderRadius: "16px",
-                      boxShadow: "none",
-                      "&:hover": {
-                        border: "1px solid #383838",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "#1D1D1D",
-                      border: "1px solid #383838",
-                      borderRadius: "4px",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      background: state.isFocused ? "#383838" : "#1D1D1D",
-                      color: "#fff",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      "&::before": {
-                        content: '""',
-                        display: "block",
-                        width: "16px",
-                        height: "16px",
-                        border: "2px solid #fff",
-                        borderRadius: "50%",
-                        backgroundColor: state.isSelected
-                          ? "#FF00A2"
-                          : "transparent",
+                        backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
                       },
                     }),
                     multiValue: (base) => ({
@@ -1203,6 +1216,26 @@ const Profile = () => {
                     }),
                   }}
                   placeholder="Select hosts"
+                  onChange={(selectedOptions) => {
+                    const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                    if (lastOption?.isCustom) {
+                      const customValue = prompt("Enter custom host name:");
+                      if (customValue?.trim()) {
+                        const newHost = {
+                          value: customValue.toLowerCase().replace(/\s+/g, '-'),
+                          label: customValue.trim()
+                        };
+                        const currentHosts = Array.isArray(field.value) ? [...field.value] : [];
+                        if (!currentHosts.some(h => 
+                          (typeof h === 'object' ? h.label : h) === customValue.trim()
+                        )) {
+                          field.onChange([...currentHosts, newHost]);
+                        }
+                      }
+                      return;
+                    }
+                    field.onChange(selectedOptions);
+                  }}
                 />
               )}
             />

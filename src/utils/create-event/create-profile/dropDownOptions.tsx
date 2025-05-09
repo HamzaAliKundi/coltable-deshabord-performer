@@ -1,6 +1,5 @@
 export const pronounOptions = [
-  { value: "she/her", label: "She/Her" },
-  { value: "he/him", label: "He/Him" },
-  { value: "they/them", label: "They/Them" },
+  { value: "drag-queen", label: "Drag Queen" },
+  { value: "drag-king", label: "Drag King" },
   { value: "other", label: "Other" },
 ];
