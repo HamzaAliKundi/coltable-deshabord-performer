@@ -22,6 +22,7 @@ interface EventFormData {
   description: string;
   isPrivate: boolean;
   logo: string;
+  eventLocation: string;
 }
 
 const CreateEvent = () => {
@@ -150,6 +151,7 @@ const CreateEvent = () => {
         endTime: formatTime(event.endTime),
         description: event.description,
         isPrivate: event.isPrivate,
+        eventLocation: event.eventLocation,
       });
 
       if (eventResponse?.event?.image) {
@@ -166,6 +168,7 @@ const CreateEvent = () => {
         endTime: "20:00",
         description: "",
         isPrivate: false,
+        eventLocation: "",
       });
     }
   }, [eventResponse, id, reset]);
@@ -255,32 +258,55 @@ const CreateEvent = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-white font-space-grotesk text-sm md:text-base">
-            Event type*
-          </label>
-          <Controller
-            name="type"
-            control={control}
-            rules={{ required: "Event type is required" }}
-            render={({ field }) => (
-              <CustomSelect
-                {...field}
-                value={eventOptions.find(
-                  (option) => option.value === field.value
-                )}
-                onChange={(selectedOption: any) =>
-                  field.onChange(selectedOption?.value)
-                }
-                options={eventOptions}
-                isDisabled={false}
-                placeholder="Select event type"
-              />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-white font-space-grotesk text-sm md:text-base">
+              Event type*
+            </label>
+            <Controller
+              name="type"
+              control={control}
+              rules={{ required: "Event type is required" }}
+              render={({ field }) => (
+                <CustomSelect
+                  {...field}
+                  value={eventOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                  onChange={(selectedOption: any) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  options={eventOptions}
+                  isDisabled={false}
+                  placeholder="Select event type"
+                />
+              )}
+            />
+            {errors.type && (
+              <span className="text-red-500 text-sm">
+                {errors.type.message}
+              </span>
             )}
-          />
-          {errors.type && (
-            <span className="text-red-500 text-sm">{errors.type.message}</span>
-          )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-white font-space-grotesk text-sm md:text-base">
+              Event Location*
+            </label>
+            <input
+              type="text"
+              placeholder="Event Location"
+              className="w-full h-12 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
+              {...register("eventLocation", {
+                required: "Event location is required",
+              })}
+            />
+            {errors.eventLocation && (
+              <span className="text-red-500 text-sm">
+                {errors.eventLocation.message}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
