@@ -17,7 +17,7 @@ interface Event {
   isPrivate: boolean;
   status: string;
   image?: string;
-  location: string;
+  address: string;
 }
 
 interface EventsListProps {
@@ -144,7 +144,7 @@ const EventsList: React.FC<EventsListProps> = ({
                     className="w-4 h-4"
                   />
                   <p className="font-['Space_Grotesk'] font-normal text-sm leading-none text-white">
-                    {event.location || "N/A"}
+                    {event.address || "N/A"}
                   </p>
                 </div>
               </div>

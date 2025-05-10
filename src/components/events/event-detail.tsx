@@ -112,7 +112,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
                   className="w-4 h-4"
                 />
                 <p className="font-['Space_Grotesk'] text-white">
-                  {event?.location || "N/A"}
+                  {event?.address || "N/A"}
                 </p>
               </div>
 
