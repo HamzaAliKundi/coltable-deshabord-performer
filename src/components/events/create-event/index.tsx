@@ -20,7 +20,7 @@ interface EventFormData {
   startTime: string;
   endTime: string;
   description: string;
-  isPrivate: boolean;
+  isPrivate: boolean | string;
   logo: string;
   eventLocation: string;
 }
@@ -150,8 +150,8 @@ const CreateEvent = () => {
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
-        isPrivate: event.isPrivate,
-        eventLocation: event.eventLocation,
+        isPrivate: event.isPrivate ? "true" : "false",
+        eventLocation: event.address,
       });
 
       if (eventResponse?.event?.image) {
@@ -167,7 +167,7 @@ const CreateEvent = () => {
         startTime: "19:00",
         endTime: "20:00",
         description: "",
-        isPrivate: false,
+        isPrivate: "false",
         eventLocation: "",
       });
     }
@@ -190,6 +190,7 @@ const CreateEvent = () => {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         image: logoUrl,
+        address: data.eventLocation,
       };
 
       if (id) {
@@ -379,7 +380,6 @@ const CreateEvent = () => {
               type="radio"
               {...register("isPrivate")}
               value="false"
-              checked
               className="w-5 h-5 text-[#FF00A2] focus:ring-[#FF00A2]"
             />
             <span className="text-white font-space-grotesk text-sm md:text-base">
