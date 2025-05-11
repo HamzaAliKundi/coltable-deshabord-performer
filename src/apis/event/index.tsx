@@ -33,6 +33,14 @@ export const eventsApi = createApi({
         method: "GET"
       }),
     }),
+
+    getAllPerformerEvents: builder.query({
+      query: ({limit = 10, page = 1}) => ({
+        url: `/api/performer/event/get-all-performer-events?limit=${limit}&page=${page}`,
+        method: "GET"
+      }),
+    }),
+
     getEventById: builder.query({
       query: (eventId: string) => ({
         url: `/api/performer/event/get-single-event/${eventId}`,
@@ -53,5 +61,6 @@ export const {
   useGetAllEventsQuery,
   useGetEventByIdQuery,
   useDeleteEventMutation,
-  useUpdateEventMutation
+  useUpdateEventMutation,
+  useGetAllPerformerEventsQuery
 } = eventsApi;

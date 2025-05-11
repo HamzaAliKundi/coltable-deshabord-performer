@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useGetAllEventsQuery } from "../../apis/event";
+import { useGetAllEventsQuery, useGetAllPerformerEventsQuery } from "../../apis/event";
 import EventsList from "./EventsList";
 
 const Events = () => {
@@ -12,6 +12,11 @@ const Events = () => {
 
   const { data: eventsData, isLoading } = useGetAllEventsQuery({
     limit: 1000,
+    page: 1,
+  });
+
+   const { data: getAllPerformerEvents, isLoading: getAllPerformerEventsLoading } = useGetAllPerformerEventsQuery({
+    limit: 100,
     page: 1,
   });
 
