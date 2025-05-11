@@ -1,48 +1,77 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useGetAllEventsQuery } from "../../apis/event";
+import {
+  useGetAllEventsQuery,
+  useGetAllPerformerEventsQuery,
+} from "../../apis/event";
 import EventsList from "./EventsList";
 
 const Events = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const eventsPerPage = 10;
+  const eventsPerPage = 8;
   const [activeTab, setActiveTab] = useState<
     "eventRequest" | "pendingRequest" | "confirmRequest"
   >("eventRequest");
 
-  const { data: eventsData, isLoading } = useGetAllEventsQuery({
-    limit: 1000,
-    page: 1,
-  });
+  const {
+    data: pendingConfirmedEventsData,
+    isLoading: isPendingConfirmedLoading,
+    isFetching: isPendingConfirmedFetching,
+  } = useGetAllEventsQuery(
+    {
+      limit: eventsPerPage,
+      page: currentPage,
+      status:
+        activeTab === "pendingRequest"
+          ? "pending"
+          : activeTab === "confirmRequest"
+          ? "approved"
+          : undefined,
+    },
+    {
+      skip: activeTab === "eventRequest",
+    }
+  );
 
-  const filterEventsByTab = () => {
-    if (!eventsData?.docs) return [];
+  const {
+    data: venueRequestEventData,
+    isLoading: isVenueRequestLoading,
+    isFetching: isVenueRequestFetching,
+  } = useGetAllPerformerEventsQuery(
+    {
+      limit: eventsPerPage,
+      page: currentPage,
+    },
+    {
+      skip: activeTab !== "eventRequest",
+    }
+  );
 
-    return eventsData.docs.filter((event: any) => {
-      if (activeTab === "pendingRequest") return event.status === "pending";
-      if (activeTab === "confirmRequest") return event.status === "approved";
-      return true;
-    });
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case "eventRequest":
+        return venueRequestEventData;
+      case "pendingRequest":
+      case "confirmRequest":
+        return pendingConfirmedEventsData;
+      default:
+        return { docs: [], totalPages: 0 };
+    }
   };
 
-  const filteredEvents = filterEventsByTab();
+  const currentData = getCurrentData();
+  const events = currentData?.docs || [];
+  const totalPages = currentData?.totalPages || 0;
 
-  const paginatedEvents = filteredEvents.slice(
-    (currentPage - 1) * eventsPerPage,
-    currentPage * eventsPerPage
-  );
+  const isLoading =
+    (activeTab === "eventRequest" &&
+      (isVenueRequestLoading || isVenueRequestFetching)) ||
+    (activeTab !== "eventRequest" &&
+      (isPendingConfirmedLoading || isPendingConfirmedFetching));
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
-
-  // const handleStatusChange = async (
-  //   eventId: string,
-  //   newStatus: "approved" | "rejected"
-  // ) => {
-  //   console.log(`Changing status of event ${eventId} to ${newStatus}`);
-  //   await refetch();
-  // };
 
   const handleTabChange = (
     tab: "eventRequest" | "pendingRequest" | "confirmRequest"
@@ -98,11 +127,12 @@ const Events = () => {
       </div>
 
       <EventsList
-        events={paginatedEvents}
+        events={events}
         isLoading={isLoading}
         currentPage={currentPage}
-        totalPages={Math.ceil(filteredEvents.length / eventsPerPage)}
+        totalPages={totalPages}
         onPageChange={handlePageChange}
+        activeTab={activeTab}
       />
     </div>
   );

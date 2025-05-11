@@ -7,9 +7,13 @@ import { Anchor, Omega } from "lucide-react";
 
 interface EventDetailProps {
   eventId: string | undefined;
+  isEventRequest: boolean;
 }
 
-const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
+const EventDetail: React.FC<EventDetailProps> = ({
+  eventId,
+  isEventRequest,
+}) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get("edit") === "true";
@@ -144,22 +148,35 @@ const EventDetail: React.FC<EventDetailProps> = ({ eventId }) => {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-4">
-            <button
-              onClick={handleDelete}
-              className="px-6 py-2 bg-[#212121] border border-white text-white rounded-[30px] hover:bg-red-500 hover:border-red-500 transition-colors"
-            >
-              Delete Event
-            </button>
-            {!isEditMode && (
+          {!isEventRequest && (
+            <div className="mt-8 flex justify-end gap-4">
               <button
-                onClick={handleEdit}
-                className="px-6 py-2 bg-[#FF00A2] text-white rounded-[30px]"
+                onClick={handleDelete}
+                className="px-6 py-2 bg-[#212121] border border-white text-white rounded-[30px] hover:bg-red-500 hover:border-red-500 transition-colors"
               >
-                Edit Event
+                Delete Event
               </button>
-            )}
-          </div>
+              {!isEditMode && (
+                <button
+                  onClick={handleEdit}
+                  className="px-6 py-2 bg-[#FF00A2] text-white rounded-[30px]"
+                >
+                  Edit Event
+                </button>
+              )}
+            </div>
+          )}
+          {isEventRequest && (
+            <div className="mt-8 flex justify-end gap-4">
+              <button className="px-6 py-2 bg-[#212121] border border-white text-white rounded-[30px] hover:bg-red-500 hover:border-red-500 transition-colors">
+                Approve
+              </button>
+
+              <button className="px-6 py-2 bg-[#FF00A2] text-white rounded-[30px]">
+                Reject
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

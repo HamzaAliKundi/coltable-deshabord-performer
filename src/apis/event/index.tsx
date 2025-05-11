@@ -28,21 +28,29 @@ export const eventsApi = createApi({
     }),
 
     getAllEvents: builder.query({
-      query: ({limit = 10, page = 1}) => ({
-        url: `/api/performer/event/get-all-events?limit=${limit}&page=${page}`,
-        method: "GET"
+      query: ({ limit, page, status }) => ({
+        url: `/api/performer/event/get-all-events?limit=${limit}&page=${page}&status=${status}`,
+        method: "GET",
       }),
     }),
+
+    getAllPerformerEvents: builder.query({
+      query: ({ limit, page }) => ({
+        url: `/api/performer/event/get-all-performer-events?limit=${limit}&page=${page}`,
+        method: "GET",
+      }),
+    }),
+
     getEventById: builder.query({
       query: (eventId: string) => ({
         url: `/api/performer/event/get-single-event/${eventId}`,
-        method: "GET"
+        method: "GET",
       }),
     }),
     deleteEvent: builder.mutation({
       query: (eventId: string) => ({
         url: `/api/performer/event/delete-event/${eventId}`,
-        method: "DELETE"
+        method: "DELETE",
       }),
     }),
   }),
@@ -53,5 +61,6 @@ export const {
   useGetAllEventsQuery,
   useGetEventByIdQuery,
   useDeleteEventMutation,
-  useUpdateEventMutation
+  useUpdateEventMutation,
+  useGetAllPerformerEventsQuery,
 } = eventsApi;

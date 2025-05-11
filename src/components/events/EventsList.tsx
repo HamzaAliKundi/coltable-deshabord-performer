@@ -26,6 +26,7 @@ interface EventsListProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  activeTab: string;
 }
 
 const EventsList: React.FC<EventsListProps> = ({
@@ -34,6 +35,7 @@ const EventsList: React.FC<EventsListProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  activeTab,
 }) => {
   const [expandedTitle, setExpandedTitle] = React.useState<string | null>(null);
   const navigate = useNavigate();
@@ -106,7 +108,7 @@ const EventsList: React.FC<EventsListProps> = ({
               />
               <div className="absolute top-3 left-3 w-[70px] h-[70px] bg-gradient-to-b from-[#FF00A2] to-[#D876B5] rounded-full flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-[#e3d4de] leading-none">
-                {formatDate(event.startDate)?.replace(',', '').slice(3, 6)}
+                  {formatDate(event.startDate)?.replace(",", "").slice(3, 6)}
                 </span>
                 <span className="text-lg font-semibold text-[#ebd4e3] uppercase leading-none">
                   {formatDate(event.startDate)?.slice(0, 3)}
@@ -149,46 +151,70 @@ const EventsList: React.FC<EventsListProps> = ({
                 </div>
               </div>
 
-              <div className="mt-4 space-y-2">
-                <button
-                  onClick={() => navigate(`/event/detail/${event._id}`)}
-                  className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
-                >
-                  VIEW DETAILS
-                </button>
-                <div className="flex gap-2">
+              {activeTab !== "eventRequest" && (
+                <div className="mt-4 space-y-2">
                   <button
-                    onClick={() => handleDelete(event._id)}
-                    className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 ${
-                      deletingId === event._id
-                        ? "opacity-50"
-                        : "hover:text-red-500"
-                    }`}
-                    disabled={deletingId === event._id}
+                    onClick={() => navigate(`/event/detail/${event._id}`)}
+                    className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
                   >
-                    {deletingId === event._id ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Deleting...
-                      </>
-                    ) : (
-                      "DELETE EVENT"
-                    )}
+                    VIEW DETAILS
                   </button>
-                  <button
-                    onClick={() => navigate(`/event/create-event/${event._id}`)}
-                    className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]"
-                  >
-                    EDIT EVENT
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDelete(event._id)}
+                      className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 ${
+                        deletingId === event._id
+                          ? "opacity-50"
+                          : "hover:text-red-500"
+                      }`}
+                      disabled={deletingId === event._id}
+                    >
+                      {deletingId === event._id ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Deleting...
+                        </>
+                      ) : (
+                        "DELETE EVENT"
+                      )}
+                    </button>
+                    <button
+                      onClick={() =>
+                        navigate(`/event/create-event/${event._id}`)
+                      }
+                      className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]"
+                    >
+                      EDIT EVENT
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
+              {activeTab === "eventRequest" && (
+                <div className="mt-4 space-y-2">
+                  <button
+                    onClick={() => navigate(`/event/detail/${event._id}?isEventRequest=true`)}
+                    className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
+                  >
+                    VIEW DETAILS
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2`}
+                    >
+                      Accept
+                    </button>
+                    <button className="w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px]">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {events.length > 0 && (
+      {totalPages > 1 && (
         <div className="flex mt-10 justify-center items-center">
           <Pagination
             currentPage={currentPage}
