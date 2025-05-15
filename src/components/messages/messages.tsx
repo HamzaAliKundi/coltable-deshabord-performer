@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ChatBox from './ChatBox';
 import MessageCard from './MessageCard';
+import { useGetAllChatsQuery } from '../../apis/messages';
 
 interface Chat {
   id: string;
@@ -11,6 +12,9 @@ interface Chat {
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+
+  const { data: performerChats, isLoading, error } = useGetAllChatsQuery();
+  console.log("performerChats", performerChats);
 
   // Dummy data for demonstration
   const chats: Chat[] = [
