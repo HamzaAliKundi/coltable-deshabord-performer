@@ -27,6 +27,14 @@ export const eventsApi = createApi({
       }),
     }),
 
+    updatePerformerEventStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/api/performer/event/update-performer-event-status/${id}`,
+        method: "PATCH",
+        body: { status },
+      }),
+    }),
+
     getAllEvents: builder.query({
       query: ({ limit, page, status }) => ({
         url: `/api/performer/event/get-all-events?limit=${limit}&page=${page}&status=${status}`,
@@ -63,4 +71,5 @@ export const {
   useDeleteEventMutation,
   useUpdateEventMutation,
   useGetAllPerformerEventsQuery,
+  useUpdatePerformerEventStatusMutation,
 } = eventsApi;

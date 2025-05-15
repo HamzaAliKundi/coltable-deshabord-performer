@@ -37,6 +37,7 @@ const Events = () => {
     data: venueRequestEventData,
     isLoading: isVenueRequestLoading,
     isFetching: isVenueRequestFetching,
+    refetch: refetchVenueRequest,
   } = useGetAllPerformerEventsQuery(
     {
       limit: eventsPerPage,
@@ -133,6 +134,7 @@ const Events = () => {
         totalPages={totalPages}
         onPageChange={handlePageChange}
         activeTab={activeTab}
+        refetchVenueRequest={refetchVenueRequest}
       />
     </div>
   );

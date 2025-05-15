@@ -33,7 +33,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
           <div className="ml-2">
             <div className="w-18 h-18 rounded-full overflow-hidden border-white">
               {image ? (
-                <img src={image} alt="Profile" className="w-full h-full object-cover" />
+                <img src={image} alt="Profile" className="min-w-[50px] min-h-[50px] object-cover" />
               ) : (
                 <MessageSquare className="w-full h-full text-gray-400" />
               )}

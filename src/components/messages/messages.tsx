@@ -3,43 +3,53 @@ import ChatBox from './ChatBox';
 import MessageCard from './MessageCard';
 import { useGetAllChatsQuery } from '../../apis/messages';
 
+interface Participant {
+  _id: string;
+  name: string;
+  email: string;
+  profilePhoto: string;
+  userType: string;
+}
+
 interface Chat {
-  id: string;
-  senderName: string;
-  lastMessage: string;
-  image?: string;
+  _id: string;
+  event: string;
+  latestMessage: string;
+  latestMessageSentAt: string;
+  createdAt: string;
+  updatedAt: string;
+  participant: Participant;
 }
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const { data, isLoading, error } = useGetAllChatsQuery();
 
-  const { data: performerChats, isLoading, error } = useGetAllChatsQuery();
-  console.log("performerChats", performerChats);
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF00A2]"></div>
+    </div>
+  );
 
-  // Dummy data for demonstration
-  const chats: Chat[] = [
-    {
-      id: '1',
-      senderName: 'Rich\'s Club',
-      lastMessage: 'Hi, we would like to book you for our upcoming event...',
-      image: '/messages/messages.svg'
-    },
-    {
-      id: '2',
-      senderName: 'Eagle Bar',
-      lastMessage: 'Thanks for your quick response! About the performance time...',
-      image: '/messages/messages.svg'
-    },
-    // Add more dummy chats as needed
-  ];
+  if (error) return (
+    <div className="text-center text-white py-8">
+      Failed to load messages
+    </div>
+  );
+
+  if (!data?.chats?.length) return (
+    <div className="text-center text-white py-8">
+      No messages found
+    </div>
+  );
 
   if (selectedChat) {
-    const chat = chats.find(c => c.id === selectedChat);
+    const chat = data.chats.find(c => c._id === selectedChat);
     return (
       <div className="p-4 md:px-8 py-8 md:py-16 bg-black">
         <ChatBox
-          recipientName={chat?.senderName || ''}
-          recipientImage={chat?.image}
+          recipientName={chat?.participant.name || ''}
+          recipientImage={chat?.participant.profilePhoto}
           onBack={() => setSelectedChat(null)}
         />
       </div>
@@ -49,14 +59,14 @@ const Messages = () => {
   return (
     <div className="p-4 md:px-8 py-8 md:py-16 bg-black">
       <div className="space-y-4">
-        {chats.map(chat => (
+        {data.chats.map(chat => (
           <MessageCard
-            key={chat.id}
-            senderName={chat.senderName}
-            lastMessage={chat.lastMessage}
-            image={chat.image}
-            onClick={() => setSelectedChat(chat.id)}
-            isSelected={selectedChat === chat.id}
+            key={chat._id}
+            senderName={chat.participant.name}
+            lastMessage={chat.latestMessage}
+            image={chat.participant.profilePhoto}
+            onClick={() => setSelectedChat(chat._id)}
+            isSelected={selectedChat === chat._id}
           />
         ))}
       </div>
