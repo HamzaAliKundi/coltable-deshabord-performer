@@ -78,9 +78,9 @@ const EventsList: React.FC<EventsListProps> = ({
 
     hours = hours % 12;
     hours = hours ? hours : 12;
-    minutes = minutes < 10 ? "0" + minutes : minutes;
+    const minutesStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
 
-    return `${hours}:${minutes} ${ampm}`;
+    return `${hours}:${minutesStr} ${ampm}`;
   };
 
   const handleDelete = async (eventId: string) => {
@@ -263,6 +263,12 @@ const EventsList: React.FC<EventsListProps> = ({
                   ) : 'Reject'}
                 </button>
               </div>
+              <button
+                onClick={() => navigate(`/messages?eventId=${event._id}&recipientId=${event.eventStatus?.user}`)}
+                className="w-full h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] hover:bg-[#2d2d2d] transition-colors"
+              >
+                CHAT
+              </button>
             </div>
               )}
             </div>

@@ -1,28 +1,151 @@
 // src/components/messages/ChatBox.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
+import { useGetChatMessagesQuery } from '../../apis/messages';
+import io from 'socket.io-client';
+
+interface Message {
+  _id: string;
+  chat: string;
+  from: string;
+  userType: string;
+  message: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  to: string;
+}
 
 interface ChatBoxProps {
   recipientName: string;
   recipientImage?: string;
+  chatId: string;
   onBack: () => void;
+  isNewChat?: boolean;
+  eventId?: string;
+  recipientId?: string;
+  sender?: any;
 }
 
-const ChatBox = ({ recipientName, recipientImage, onBack }: ChatBoxProps) => {
+const ChatBox = ({ 
+  recipientName, 
+  recipientImage, 
+  chatId, 
+  onBack, 
+  isNewChat = false,
+  eventId,
+  recipientId,
+  sender
+}: ChatBoxProps) => {
   const [message, setMessage] = useState('');
+  const [socket, setSocket] = useState<any>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  // Dummy messages for UI demonstration
-  const [messages] = useState([
-    { id: 1, text: "Hello, I'm interested in booking you for an event", sender: 'them', time: '10:00 AM' },
-    { id: 2, text: "Hi! Thanks for reaching out. I'd love to hear more about the event.", sender: 'me', time: '10:05 AM' },
-  ]);
+  const { data: messagesData, isLoading, error } = useGetChatMessagesQuery(chatId, {
+    skip: isNewChat
+  });
+
+  useEffect(() => {
+    if (messagesData?.messages) {
+      setMessages(messagesData.messages);
+    }
+  }, [messagesData]);
+
+  useEffect(() => {
+    // Initialize socket connection
+    const newSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+      transports: ['websocket'],
+      reconnection: true,
+      timeout: 10000
+    });
+
+    // Connection event handlers
+    newSocket.on('connect', () => {
+      console.log('Socket connected successfully');
+      setSocket(newSocket);
+    });
+
+    newSocket.on('connect_error', (error: Error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    newSocket.on('disconnect', (reason: string) => {
+      console.log('Socket disconnected:', reason);
+    });
+
+    // Join chat room
+    if (!isNewChat && chatId) {
+      console.log('Joining chat room:', chatId);
+      newSocket.emit('join', chatId);
+    }
+
+    // Listen for join confirmation
+    newSocket.on('on-join', (message: string) => {
+      console.log('Join confirmation:', message);
+    });
+
+    // Listen for new messages
+    newSocket.on('new-message', (message: Message) => {
+      console.log('Received new message:', message);
+      setMessages(prev => [...prev, message]);
+    });
+
+    // Listen for errors
+    newSocket.on('error', (error: { message: string }) => {
+      console.error('Socket error:', error.message);
+    });
+
+    return () => {
+      newSocket.off('connect');
+      newSocket.off('connect_error');
+      newSocket.off('disconnect');
+      newSocket.off('on-join');
+      newSocket.off('new-message');
+      newSocket.off('error');
+      newSocket.disconnect();
+    };
+  }, [chatId, isNewChat]);
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
   const handleSend = () => {
-    if (message.trim()) {
-      // Here you would typically send the message to your backend
-      console.log('Sending message:', message);
-      setMessage('');
+    if (!socket?.connected) {
+      console.error('Socket is not connected');
+      return;
     }
+
+    if (!message.trim()) {
+      console.log('Message is empty');
+      return;
+    }
+
+    if (!sender || !recipientId || !eventId) {
+      console.error('Missing required data:', { sender, recipientId, eventId });
+      return;
+    }
+
+    const payload = {
+      sender: {
+        _id: sender._id,
+        userType: sender.userType
+      },
+      receiverId: recipientId,
+      eventId: eventId,
+      message: { message: message.trim() }
+    };
+
+    console.log('Sending message with payload:', payload);
+    
+    // Send message and clear input immediately
+    socket.emit('send-message', payload);
+    setMessage(''); // Clear the input field
   };
 
   return (
@@ -51,23 +174,28 @@ const ChatBox = ({ recipientName, recipientImage, onBack }: ChatBoxProps) => {
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
+        {messages.map((msg: Message) => (
           <div
-            key={msg.id}
-            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            key={msg._id}
+            className={`flex ${msg.userType === 'performer' ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`max-w-[70%] rounded-xl p-3 ${
-                msg.sender === 'me'
+                msg.userType === 'performer'
                   ? 'bg-[#FF00A2] text-white'
                   : 'bg-[#383838] text-white'
               }`}
             >
-              <p className="font-['Space_Grotesk']">{msg.text}</p>
-              <span className="text-xs opacity-70 mt-1 block">{msg.time}</span>
+              <p className="font-['Space_Grotesk']">{msg.message}</p>
+              <span className="text-xs opacity-70 mt-1 block">{formatTime(msg.createdAt)}</span>
             </div>
           </div>
         ))}
+        {isNewChat && messages.length === 0 && (
+          <div className="text-center text-white/70 py-8">
+            Start a new conversation
+          </div>
+        )}
       </div>
 
       {/* Message input */}

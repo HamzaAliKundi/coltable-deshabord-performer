@@ -17,9 +17,16 @@ export const messagesApi = createApi({
         method: "GET",
       }),
     }),
+    getChatMessages: builder.query({
+      query: (chatId) => ({
+        url: `/api/performer/chat/get-chat-messages?chatId=${chatId}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
 export const {
-  useGetAllChatsQuery
+  useGetAllChatsQuery,
+  useGetChatMessagesQuery
 } = messagesApi;

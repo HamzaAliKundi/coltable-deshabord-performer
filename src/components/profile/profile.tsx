@@ -37,7 +37,6 @@ const Profile = () => {
   const { data: profileData, isLoading, refetch } = useGetPerformerProfileQuery();
 
   const { data: venues } = useGetAllVenuesQuery();
-  console.log(venues);
 
   // State for managing media previews
   const [mediaPreviews, setMediaPreviews] = useState<(MediaItem | string)[]>(
