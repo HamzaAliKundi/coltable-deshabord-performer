@@ -37,7 +37,7 @@ const Messages = () => {
     try {
       await Promise.all([refetchChats(), refetchProfile()]);
       setSelectedChat(null);
-      navigate('/messages');
+      navigate('/messages', { replace: true });
     } finally {
       setIsRefetching(false);
     }
@@ -45,6 +45,11 @@ const Messages = () => {
 
   useEffect(() => {
     const eventId = searchParams.get('eventId');
+    if (!eventId) {
+      setSelectedChat(null);
+      return;
+    }
+    
     if (eventId) {
       const existingChat = data?.chats?.find((chat: Chat) => chat.event === eventId);
       if (existingChat) {
