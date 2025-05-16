@@ -1,5 +1,5 @@
 // src/components/messages/ChatBox.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import { useGetChatMessagesQuery } from '../../apis/messages';
 import io from 'socket.io-client';
@@ -40,16 +40,43 @@ const ChatBox = ({
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data: messagesData, isLoading, error } = useGetChatMessagesQuery(chatId, {
+  const { data: messagesData, isLoading, error, refetch } = useGetChatMessagesQuery(chatId, {
     skip: isNewChat
   });
+
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
 
   useEffect(() => {
     if (messagesData?.messages) {
       setMessages(messagesData.messages);
+      setTimeout(scrollToBottom, 100);
     }
   }, [messagesData]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!isNewChat && chatId) {
+        setIsRefetching(true);
+        try {
+          await refetch();
+        } finally {
+          setIsRefetching(false);
+        }
+      }
+    };
+    fetchMessages();
+  }, [chatId, isNewChat, refetch]);
 
   useEffect(() => {
     // Initialize socket connection
@@ -115,6 +142,13 @@ const ChatBox = ({
     });
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const handleSend = () => {
     if (!socket?.connected) {
       console.error('Socket is not connected');
@@ -143,7 +177,6 @@ const ChatBox = ({
 
     console.log('Sending message with payload:', payload);
     
-    // Send message and clear input immediately
     socket.emit('send-message', payload);
     setMessage(''); // Clear the input field
   };
@@ -173,41 +206,53 @@ const ChatBox = ({
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg: Message) => (
-          <div
-            key={msg._id}
-            className={`flex ${msg.userType === 'performer' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[70%] rounded-xl p-3 ${
-                msg.userType === 'performer'
-                  ? 'bg-[#FF00A2] text-white'
-                  : 'bg-[#383838] text-white'
-              }`}
-            >
-              <p className="font-['Space_Grotesk']">{msg.message}</p>
-              <span className="text-xs opacity-70 mt-1 block">{formatTime(msg.createdAt)}</span>
-            </div>
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 relative">
+        {(isLoading || isRefetching) ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF00A2]"></div>
           </div>
-        ))}
-        {isNewChat && messages.length === 0 && (
-          <div className="text-center text-white/70 py-8">
-            Start a new conversation
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">
+            Error loading messages
           </div>
+        ) : (
+          <>
+            {messages.map((msg: Message) => (
+              <div
+                key={msg._id}
+                className={`flex ${msg.userType === 'performer' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[70%] rounded-xl p-3 ${
+                    msg.userType === 'performer'
+                      ? 'bg-[#FF00A2] text-white'
+                      : 'bg-[#383838] text-white'
+                  }`}
+                >
+                  <p className="font-['Space_Grotesk'] whitespace-pre-wrap">{msg.message}</p>
+                  <span className="text-xs opacity-70 mt-1 block">{formatTime(msg.createdAt)}</span>
+                </div>
+              </div>
+            ))}
+            {isNewChat && messages.length === 0 && (
+              <div className="text-center text-white/70 py-8">
+                Start a new conversation
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Message input */}
       <div className="p-4 bg-[#0D0D0D] border-t border-[#383838]">
         <div className="flex items-center space-x-2">
-          <input
-            type="text"
+          <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 bg-[#1D1D1D] text-white rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF00A2] font-['Space_Grotesk']"
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            onKeyPress={handleKeyPress}
+            placeholder="Type your message... (Shift + Enter for new line)"
+            className="flex-1 bg-[#1D1D1D] text-white rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF00A2] font-['Space_Grotesk'] resize-none min-h-[40px] max-h-[120px]"
+            rows={1}
           />
           <button
             onClick={handleSend}
