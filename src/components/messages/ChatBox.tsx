@@ -114,7 +114,17 @@ const ChatBox = ({
     // Listen for new messages
     newSocket.on('new-message', (message: Message) => {
       console.log('Received new message:', message);
-      setMessages(prev => [...prev, message]);
+      setMessages(prev => {
+        // Check if message already exists (for messages we just sent)
+        const messageExists = prev.some(msg => 
+          msg._id === message._id || 
+          (msg.from === message.from && 
+           msg.message === message.message && 
+           Math.abs(new Date(msg.createdAt).getTime() - new Date(message.createdAt).getTime()) < 1000)
+        );
+        if (messageExists) return prev;
+        return [...prev, message];
+      });
     });
 
     // Listen for errors
