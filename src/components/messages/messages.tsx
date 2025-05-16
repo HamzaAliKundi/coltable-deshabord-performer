@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ChatBox from './ChatBox';
 import MessageCard from './MessageCard';
 import { useGetAllChatsQuery } from '../../apis/messages';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useGetPerformerProfileQuery } from '../../apis/profile';
 
 interface Participant {
@@ -26,13 +26,22 @@ interface Chat {
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
   const [searchParams] = useSearchParams();
-  const { data, isLoading, error } = useGetAllChatsQuery({});
-  const { data: profileData, isLoading: isLoadingProfile, refetch } = useGetPerformerProfileQuery();
+  const navigate = useNavigate();
+  const { data, isLoading, error, refetch: refetchChats } = useGetAllChatsQuery({});
+  const { data: profileData, isLoading: isLoadingProfile, refetch: refetchProfile } = useGetPerformerProfileQuery({});
 
-  console.log("profileData", profileData);
-  
-  
+  const handleBack = async () => {
+    setIsRefetching(true);
+    try {
+      await Promise.all([refetchChats(), refetchProfile()]);
+      setSelectedChat(null);
+      navigate('/messages');
+    } finally {
+      setIsRefetching(false);
+    }
+  };
 
   useEffect(() => {
     const eventId = searchParams.get('eventId');
@@ -47,9 +56,10 @@ const Messages = () => {
     }
   }, [searchParams, data?.chats]);
 
-  if (isLoading) return (
-    <div className="flex justify-center items-center h-64">
+  if (isLoading || isRefetching) return (
+    <div className="flex flex-col justify-center items-center h-64 gap-4">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF00A2]"></div>
+      <p className="text-white text-sm">Navigating back to messages...</p>
     </div>
   );
 
@@ -62,14 +72,17 @@ const Messages = () => {
   if (selectedChat === 'new') {
     const eventId = searchParams.get('eventId');
     const recipientId = searchParams.get('recipientId');
+    const recipientName = searchParams.get('recipientName');
+    const recipientImage = searchParams.get('recipientImage');
     
+
     return (
       <div className="p-4 md:px-8 py-8 md:py-16 bg-black">
         <ChatBox
           chatId="new"
-          recipientName="New Chat"
-          recipientImage=""
-          onBack={() => setSelectedChat(null)}
+          recipientName={recipientName || "New Chat"}
+          recipientImage={recipientImage || ""}
+          onBack={handleBack}
           isNewChat={true}
           eventId={eventId || undefined}
           recipientId={recipientId || undefined}
@@ -89,7 +102,7 @@ const Messages = () => {
           chatId={chat._id}
           recipientName={chat.participant.name}
           recipientImage={chat.participant.logo}
-          onBack={() => setSelectedChat(null)}
+          onBack={handleBack}
           isNewChat={false}
           eventId={chat.event}
           recipientId={chat.participant._id}

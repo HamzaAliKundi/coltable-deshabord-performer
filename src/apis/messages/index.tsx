@@ -16,6 +16,7 @@ export const messagesApi = createApi({
         url: "/api/performer/chat/get-all-chats",
         method: "GET",
       }),
+      keepUnusedDataFor: 0,
     }),
     getChatMessages: builder.query({
       query: (chatId) => ({

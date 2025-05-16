@@ -150,11 +150,6 @@ const ChatBox = ({
   };
 
   const handleSend = () => {
-    if (!socket?.connected) {
-      console.error('Socket is not connected');
-      return;
-    }
-
     if (!message.trim()) {
       console.log('Message is empty');
       return;
@@ -175,10 +170,30 @@ const ChatBox = ({
       message: { message: message.trim() }
     };
 
-    console.log('Sending message with payload:', payload);
-    
-    socket.emit('send-message', payload);
-    setMessage(''); // Clear the input field
+    // Create temporary message to show immediately
+    const tempMessage = {
+      _id: Date.now().toString(),
+      chat: chatId,
+      from: sender._id,
+      userType: sender.userType,
+      message: message.trim(),
+      status: 'sent',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      to: recipientId
+    };
+
+    // Add message to chat immediately
+    setMessages(prev => [...prev, tempMessage]);
+    setMessage('');
+
+    // Send through socket if connected
+    if (socket?.connected) {
+      console.log('Sending message with payload:', payload);
+      socket.emit('send-message', payload);
+    } else {
+      console.error('Socket is not connected');
+    }
   };
 
   return (
