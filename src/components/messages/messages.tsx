@@ -113,7 +113,7 @@ const Messages = () => {
             key={chat._id}
             senderName={chat.participant.name}
             lastMessage={chat.latestMessage}
-            image={chat.participant.profilePhoto}
+            image={chat.participant.logo}
             onClick={() => setSelectedChat(chat._id)}
             isSelected={selectedChat === chat._id}
           />
