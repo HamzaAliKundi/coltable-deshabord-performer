@@ -88,7 +88,7 @@ const Messages = () => {
         <ChatBox
           chatId={chat._id}
           recipientName={chat.participant.name}
-          recipientImage={chat.participant.profilePhoto}
+          recipientImage={chat.participant.logo}
           onBack={() => setSelectedChat(null)}
           isNewChat={false}
           eventId={chat.event}
