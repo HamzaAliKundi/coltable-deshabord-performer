@@ -264,7 +264,7 @@ const EventsList: React.FC<EventsListProps> = ({
                 </button>
               </div>
               <button
-                onClick={() => navigate(`/messages?eventId=${event._id}&recipientId=${event.eventStatus?.user}`)}
+                onClick={() => navigate(`/messages?eventId=${event._id}&recipientId=${event?.user}`)}
                 className="w-full h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] hover:bg-[#2d2d2d] transition-colors"
               >
                 CHAT
