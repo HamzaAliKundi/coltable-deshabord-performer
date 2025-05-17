@@ -22,9 +22,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
     isLoading,
     error,
   } = useGetEventByIdQuery(eventId || "");
-  const [deleteEvent] = useDeleteEventMutation();
 
   const event = eventResponse?.event;
+  const [deleteEvent] = useDeleteEventMutation();
 
   const handleDelete = async () => {
     if (!eventId) return;

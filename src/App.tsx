@@ -21,6 +21,7 @@ import ResetPassword from "./components/auth/reset-password";
 import ForgotPassword from "./components/auth/forgot-password";
 import PasswordResetEmailSent from "./components/auth/PasswordResetEmailSent";
 import PasswordChangedSuccess from "./components/auth/PasswordChangedSuccess";
+import EventRequestDetail from "./pages/events/event-request-detail";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
             <Route path="event/create-event" element={<CreateEvent />} />
             <Route path="event/create-event/:id" element={<CreateEvent />} />
             <Route path="event/detail/:id" element={<EventDetailPage />} />
+            <Route path="event/event-request-detail/:id" element={<EventRequestDetail />} />
+
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="terms" element={<Terms />} />
