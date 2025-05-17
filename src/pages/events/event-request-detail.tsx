@@ -144,11 +144,11 @@ const EventRequestDetail = () => {
               {formatDate(getEventsByVenuesById?.event.startDate)?.slice(0, 12)}
             </li>
             <li>
-              <span className="font-medium">Starts:</span>{" "}
+              <span className="font-medium">Start Time:</span>{" "}
               {extractTime(getEventsByVenuesById?.event.startTime)}
             </li>
             <li>
-              <span className="font-medium">Ends:</span>{" "}
+              <span className="font-medium">End Time:</span>{" "}
               {extractTime(getEventsByVenuesById?.event.endTime)}
             </li>
             <li>
