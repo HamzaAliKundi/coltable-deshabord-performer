@@ -98,12 +98,12 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
                     const isPathActive = location.pathname.includes(pathWithoutSlash.replace('s', ''));
                     return `block px-4 py-2 font-['Space_Grotesk'] text-[16px] leading-[100%] align-middle ${
                       isActive || isPathActive ? "text-[#FFFFFF]" : "text-[#888888]"
-                    } ${item.name === "Messages" ? "flex items-center justify-between" : ""}`;
+                    } relative`;
                   }}
                 >
                   {item.name}
                   {item.name === "Messages" && unreadCount?.totalUnreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-2">
+                    <span className="absolute top-0 right-40 md:top-[0px] md:right-36 lg:top-[0px] lg:right-24 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                       {unreadCount?.totalUnreadCount}
                     </span>
                   )}
@@ -126,19 +126,6 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
               </li>
             )}
           </ul>
-          {/* {location.pathname === "/profile" && (
-            <div className="mt-8 ml-4 md:ml-12 ml:pl-24 relative w-full max-w-[276px] h-[400px] md:h-[588px] bg-[#1A1A1A] rounded-lg mx-auto">
-              <div className="flex justify-between px-4 py-2">
-                <span className="text-[#888888] text-sm md:text-base">Advertisement</span>
-                <button className="text-[#888888]">✕</button>
-              </div>
-              <div className="w-full h-[calc(100%-40px)] flex flex-col items-center justify-center text-[#888888] text-sm md:text-base">
-                Ad Space
-                <br />
-                276 x 588
-              </div>
-            </div>
-          )} */}
         </nav>
       </aside>
 
