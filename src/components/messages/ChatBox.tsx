@@ -25,6 +25,7 @@ interface ChatBoxProps {
   eventId?: string;
   recipientId?: string;
   sender?: any;
+  eventName?: string;
 }
 
 const ChatBox = ({ 
@@ -35,7 +36,8 @@ const ChatBox = ({
   isNewChat = false,
   eventId,
   recipientId,
-  sender
+  sender,
+  eventName
 }: ChatBoxProps) => {
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState<any>(null);
@@ -133,6 +135,14 @@ const ChatBox = ({
         if (messageExists) return prev;
         return [...prev, message];
       });
+
+      // Mark messages as read when new message is received
+      if (sender?._id && chatId) {
+        newSocket.emit('mark-as-read', {
+          chatId,
+          userId: sender._id
+        });
+      }
     });
 
     // Listen for messages-read event
@@ -222,6 +232,8 @@ const ChatBox = ({
     }
   };
 
+  console.log("eventName", eventName);
+  
   return (
     <div className="flex flex-col h-[75vh] bg-[#0D0D0D] rounded-xl overflow-hidden">
       {/* Chat header */}
@@ -241,7 +253,9 @@ const ChatBox = ({
                 <div className="w-full h-full bg-[#383838]" />
               )}
             </div>
-            <span className="ml-3 text-white font-['Space_Grotesk'] text-lg">{recipientName}</span>
+            <div className="flex flex-col">
+            <span className="ml-3 text-white font-['Space_Grotesk'] text-lg">{recipientName} {eventName ? `- ${eventName}` : ""}</span>
+            </div>
           </div>
         </div>
       </div>
