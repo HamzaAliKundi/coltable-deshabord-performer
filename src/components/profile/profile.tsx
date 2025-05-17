@@ -594,8 +594,7 @@ const Profile = () => {
                 />
               </svg>
               <p className="font-['Space_Grotesk'] text-[16px] leading-[100%]">
-                Please complete your profile to get approved and start receiving
-                booking requests.
+                Complete your profile to get approved and start accessing available features.
               </p>
             </div>
           </div>
