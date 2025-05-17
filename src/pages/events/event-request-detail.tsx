@@ -244,16 +244,6 @@ const EventRequestDetail = () => {
           </p>
         </div>
       )}
-
-      {/* Action Buttons */}
-      <div className="mt-20 flex flex-col md:flex-row items-center md:items-start mb-6 md:mb-0 justify-center gap-6 md:gap-4 ">
-        <button className="w-[222px] h-[62px] bg-[#FF00A2] hover:bg-[#d40085] text-white rounded-[83px] shadow-md font-['Space_Grotesk'] font-normal text-[20px] leading-[100%] uppercase flex items-center justify-center">
-          Approve
-        </button>
-        <button className="w-[222px] h-[62px] bg-transparent border-2 border-[#FF00A2] text-white rounded-[83px] shadow-md font-['Space_Grotesk'] font-normal text-[20px] leading-[100%] uppercase flex items-center justify-center">
-          Reject
-        </button>
-      </div>
     </div>
   );
 };
