@@ -133,6 +133,14 @@ const ChatBox = ({
         if (messageExists) return prev;
         return [...prev, message];
       });
+
+      // Mark messages as read when new message is received
+      if (sender?._id && chatId) {
+        newSocket.emit('mark-as-read', {
+          chatId,
+          userId: sender._id
+        });
+      }
     });
 
     // Listen for messages-read event
