@@ -45,19 +45,22 @@ const Messages = () => {
 
   useEffect(() => {
     const eventId = searchParams.get('eventId');
-    if (!eventId) {
+    const recipientId = searchParams.get('recipientId');
+    
+    if (!eventId || !recipientId) {
       setSelectedChat(null);
       return;
     }
     
-    if (eventId) {
-      const existingChat = data?.chats?.find((chat: Chat) => chat.event === eventId);
-      if (existingChat) {
-        setSelectedChat(existingChat._id);
-      } else {
-        // Handle new chat case
-        setSelectedChat('new');
-      }
+    const existingChat = data?.chats?.find((chat: Chat) => {
+      return chat.event === eventId && chat.participant._id === recipientId;
+    });
+    
+    
+    if (existingChat) {
+      setSelectedChat(existingChat._id);
+    } else {
+      setSelectedChat('new');
     }
   }, [searchParams, data?.chats]);
 
@@ -78,13 +81,14 @@ const Messages = () => {
     const recipientId = searchParams.get('recipientId');
     const recipientName = searchParams.get('recipientName');
     const recipientImage = searchParams.get('recipientImage');
-    
+    const eventName = searchParams.get('eventName');
 
     return (
       <div className="p-4 md:px-8 py-8 md:py-16 bg-black">
         <ChatBox
           chatId="new"
           recipientName={recipientName || "New Chat"}
+          eventName={eventName || ""}
           recipientImage={recipientImage || ""}
           onBack={handleBack}
           isNewChat={true}
@@ -106,6 +110,7 @@ const Messages = () => {
           chatId={chat._id}
           recipientName={chat.participant.name}
           recipientImage={chat.participant.logo}
+          eventName={chat?.eventName}
           onBack={handleBack}
           isNewChat={false}
           eventId={chat.event}
@@ -131,6 +136,7 @@ const Messages = () => {
             senderName={chat.participant.name}
             lastMessage={chat.latestMessage}
             image={chat.participant.logo}
+            eventName={chat?.eventName}
             onClick={() => setSelectedChat(chat._id)}
             isSelected={selectedChat === chat._id}
           />
