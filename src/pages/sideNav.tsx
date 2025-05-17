@@ -1,6 +1,18 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
+import { useGetTotalUnreadCountQuery } from "../apis/messages";
+import io from 'socket.io-client';
+import { useGetPerformerProfileQuery } from "../apis/profile";
+
+interface MessagesReadEvent {
+  chatId: string;
+  unreadCount: number;
+}
+
+interface TotalUnreadCountEvent {
+  totalUnreadCount: number;
+}
 
 const navItems = [
   { name: "My Profile", path: "/profile" },
@@ -21,6 +33,42 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { data: unreadCount, refetch: refetchUnreadCount } = useGetTotalUnreadCountQuery({});
+  const { data: profileData } = useGetPerformerProfileQuery({});
+
+  useEffect(() => {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+      transports: ['websocket'],
+      reconnection: true,
+      timeout: 10000
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected in SideNav');
+      if (profileData?.user?._id) {
+        socket.emit('join', profileData.user._id);
+        socket.emit('get-unread-counts', { userId: profileData.user._id });
+      }
+    });
+
+    socket.on('new-message', () => {
+      if (profileData?.user?._id) {
+        socket.emit('get-unread-counts', { userId: profileData.user._id });
+      }
+    });
+
+    socket.on('total-unread-count', (data: TotalUnreadCountEvent) => {
+      console.log('Total unread count received:', data);
+      refetchUnreadCount();
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('new-message');
+      socket.off('total-unread-count');
+      socket.disconnect();
+    };
+  }, [refetchUnreadCount, profileData?.user?._id]);
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -50,10 +98,15 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
                     const isPathActive = location.pathname.includes(pathWithoutSlash.replace('s', ''));
                     return `block px-4 py-2 font-['Space_Grotesk'] text-[16px] leading-[100%] align-middle ${
                       isActive || isPathActive ? "text-[#FFFFFF]" : "text-[#888888]"
-                    }`;
+                    } ${item.name === "Messages" ? "flex items-center justify-between" : ""}`;
                   }}
                 >
                   {item.name}
+                  {item.name === "Messages" && unreadCount?.totalUnreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-2">
+                      {unreadCount?.totalUnreadCount}
+                    </span>
+                  )}
                 </NavLink>
               </li>
             ))}

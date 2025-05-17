@@ -104,6 +104,14 @@ const ChatBox = ({
     if (!isNewChat && chatId) {
       console.log('Joining chat room:', chatId);
       newSocket.emit('join', chatId);
+      
+      // Emit mark-as-read event
+      if (sender?._id && chatId) {
+        newSocket.emit('mark-as-read', {
+          chatId,
+          userId: sender._id
+        });
+      }
     }
 
     // Listen for join confirmation
@@ -127,10 +135,18 @@ const ChatBox = ({
       });
     });
 
+    // Listen for messages-read event
+    newSocket.on('messages-read', (data: { chatId: string; unreadCount: number }) => {
+      console.log('Messages marked as read:', data);
+      // Emit a global event that SideNav can listen to
+      newSocket.emit('messages-read-global', data);
+    });
+
     // Listen for errors
     newSocket.on('error', (error: { message: string }) => {
       console.error('Socket error:', error.message);
     });
+
 
     return () => {
       newSocket.off('connect');
@@ -141,7 +157,7 @@ const ChatBox = ({
       newSocket.off('error');
       newSocket.disconnect();
     };
-  }, [chatId, isNewChat]);
+  }, [chatId, isNewChat, sender]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);

@@ -24,10 +24,17 @@ export const messagesApi = createApi({
         method: "GET",
       }),
     }),
+    getTotalUnreadCount: builder.query({
+      query: () => ({
+        url: "/api/performer/chat/get-total-unread-count",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
 export const {
   useGetAllChatsQuery,
-  useGetChatMessagesQuery
+  useGetChatMessagesQuery,
+  useGetTotalUnreadCountQuery
 } = messagesApi;
