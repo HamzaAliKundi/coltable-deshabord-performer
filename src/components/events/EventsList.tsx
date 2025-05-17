@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDeleteEventMutation, useGetAllEventsQuery, useUpdatePerformerEventStatusMutation } from "../../apis/event";
+import {
+  useDeleteEventMutation,
+  useGetAllEventsQuery,
+  useUpdatePerformerEventStatusMutation,
+} from "../../apis/event";
 import { toast } from "react-hot-toast";
 import Pagination from "../../common/Pagination";
 
@@ -46,7 +50,7 @@ const EventsList: React.FC<EventsListProps> = ({
   totalPages,
   onPageChange,
   activeTab,
-  refetchVenueRequest
+  refetchVenueRequest,
 }) => {
   const [expandedTitle, setExpandedTitle] = React.useState<string | null>(null);
   const navigate = useNavigate();
@@ -57,7 +61,9 @@ const EventsList: React.FC<EventsListProps> = ({
   const [updatePerformerEventStatus] = useUpdatePerformerEventStatusMutation();
 
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
-  const [currentAction, setCurrentAction] = useState<'approved' | 'rejected' | null>(null);
+  const [currentAction, setCurrentAction] = useState<
+    "approved" | "rejected" | null
+  >(null);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -88,8 +94,7 @@ const EventsList: React.FC<EventsListProps> = ({
     try {
       await deleteEvent(eventId).unwrap();
       toast.success("Event deleted successfully");
-      refetch(); 
-
+      refetch();
     } catch (error) {
       toast.error("Failed to delete event");
     } finally {
@@ -97,17 +102,24 @@ const EventsList: React.FC<EventsListProps> = ({
     }
   };
 
-  const handleStatusUpdate = async (eventId: string, status: 'approved' | 'rejected') => {
+  const handleStatusUpdate = async (
+    eventId: string,
+    status: "approved" | "rejected"
+  ) => {
     setLoadingStatus(eventId);
     setCurrentAction(status);
-    
+
     try {
       await updatePerformerEventStatus({ id: eventId, status }).unwrap();
-      toast.success(`Event ${status === 'approved' ? 'accepted' : 'rejected'} successfully`);
+      toast.success(
+        `Event ${status === "approved" ? "accepted" : "rejected"} successfully`
+      );
       refetch?.();
       refetchVenueRequest();
     } catch (error) {
-      toast.error(`Failed to ${status === 'approved' ? 'accept' : 'reject'} event`);
+      toast.error(
+        `Failed to ${status === "approved" ? "accept" : "reject"} event`
+      );
     } finally {
       setLoadingStatus(null);
       setCurrentAction(null);
@@ -224,52 +236,80 @@ const EventsList: React.FC<EventsListProps> = ({
                 </div>
               )}
               {activeTab === "eventRequest" && (
-              <div className="mt-4 space-y-2">
-              <button
-                onClick={() => navigate(`/event/detail/${event._id}?isEventRequest=true`)}
-                className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
-              >
-                VIEW DETAILS
-              </button>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleStatusUpdate(event._id, 'approved')}
-                  disabled={loadingStatus === event._id || event.eventStatus?.status === 'approved'}
-                  className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 
-                    ${event.eventStatus?.status === 'approved' ? 'opacity-50 cursor-not-allowed bg-green-800' : ''}`}
-                >
-                  {loadingStatus === event._id && currentAction === 'approved' ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : event.eventStatus?.status === 'approved' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
-                      Approved
-                    </>
-                  ) : 'Accept'}
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(event._id, 'rejected')}
-                  disabled={loadingStatus === event._id || event.eventStatus?.status === 'rejected'}
-                  className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 
-                    ${event.eventStatus?.status === 'rejected' ? 'opacity-50 cursor-not-allowed bg-red-800' : ''}`}
-                >
-                  {loadingStatus === event._id && currentAction === 'rejected' ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : event.eventStatus?.status === 'rejected' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-red-400 mr-1"></span>
-                      Rejected
-                    </>
-                  ) : 'Reject'}
-                </button>
-              </div>
-              <button
-                onClick={() => navigate(`/messages?eventId=${event._id}&recipientId=${event?.user?._id}&recipientName=${event?.user?.name}&recipientImage=${event?.user?.logo}`)}
-                className="w-full h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] hover:bg-[#2d2d2d] transition-colors"
-              >
-                CHAT
-              </button>
-            </div>
+                <div className="mt-4 space-y-2">
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/event/event-request-detail/${event._id}?isEventRequest=true`
+                      )
+                    }
+                    className="w-full h-[35px] bg-[#FF00A2] text-white text-xs font-medium rounded-[30px]"
+                  >
+                    VIEW DETAILS
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleStatusUpdate(event._id, "approved")}
+                      disabled={
+                        loadingStatus === event._id ||
+                        event.eventStatus?.status === "approved"
+                      }
+                      className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 
+                    ${
+                      event.eventStatus?.status === "approved"
+                        ? "opacity-50 cursor-not-allowed bg-green-800"
+                        : ""
+                    }`}
+                    >
+                      {loadingStatus === event._id &&
+                      currentAction === "approved" ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : event.eventStatus?.status === "approved" ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
+                          Approved
+                        </>
+                      ) : (
+                        "Accept"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(event._id, "rejected")}
+                      disabled={
+                        loadingStatus === event._id ||
+                        event.eventStatus?.status === "rejected"
+                      }
+                      className={`w-1/2 h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] flex items-center justify-center gap-2 
+                    ${
+                      event.eventStatus?.status === "rejected"
+                        ? "opacity-50 cursor-not-allowed bg-red-800"
+                        : ""
+                    }`}
+                    >
+                      {loadingStatus === event._id &&
+                      currentAction === "rejected" ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : event.eventStatus?.status === "rejected" ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-red-400 mr-1"></span>
+                          Rejected
+                        </>
+                      ) : (
+                        "Reject"
+                      )}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/messages?eventId=${event._id}&recipientId=${event?.user?._id}&recipientName=${event?.user?.name}&recipientImage=${event?.user?.logo}`
+                      )
+                    }
+                    className="w-full h-[35px] bg-[#212121] border-[1px] border-[#FFFFFF] text-white text-xs font-normal rounded-[82px] hover:bg-[#2d2d2d] transition-colors"
+                  >
+                    CHAT
+                  </button>
+                </div>
               )}
             </div>
           </div>

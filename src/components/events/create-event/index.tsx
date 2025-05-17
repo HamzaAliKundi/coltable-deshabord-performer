@@ -37,9 +37,13 @@ const CreateEvent = () => {
     register,
     handleSubmit,
     reset,
+    watch,
     control,
     formState: { errors },
   } = useForm<EventFormData>();
+
+  const startTime = watch("startTime");
+  const endTime = watch("endTime");
 
   const [createEvent, { isLoading: isCreating }] = useAddEventMutation();
   const [updateEvent, { isLoading: isUpdating }] = useUpdateEventMutation();
@@ -329,11 +333,21 @@ const CreateEvent = () => {
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Start Time*
             </label>
+
             <input
-              {...register("startTime", { required: "Start time is required" })}
               type="time"
               className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500"
+              {...register("startTime", {
+                required: "Start time is required",
+                validate: (value) => {
+                  if (endTime && value > endTime) {
+                    return "Start time cannot be after end time";
+                  }
+                  return true;
+                },
+              })}
             />
+
             {errors.startTime && (
               <span className="text-red-500">{errors.startTime.message}</span>
             )}
@@ -342,15 +356,22 @@ const CreateEvent = () => {
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event End Time*
             </label>
+
             <input
-              {...register("endTime", {
-                required: "End time is required",
-                validate: (value, { startTime }) =>
-                  value > startTime || "End time must be after start time",
-              })}
               type="time"
               className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base focus:outline-none focus:ring-1 focus:ring-pink-500"
+              {...register("endTime", {
+                required: "End time is required",
+                validate: (value) => {
+                  if (startTime && value < startTime) {
+                    return "End time cannot be before start time";
+                  }
+
+                  return true;
+                },
+              })}
             />
+
             {errors.endTime && (
               <span className="text-red-500">{errors.endTime.message}</span>
             )}

@@ -9,10 +9,13 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { pronounOptions } from "../../utils/create-event/create-profile/dropDownOptions";
 import CustomSelect from "../../utils/CustomSelect";
+import { Edit, X } from "lucide-react";
 
-interface MediaItem {
+interface MediaSlot {
   url: string;
-  type: "image" | "video";
+  type: "image" | "video" | "none";
+  cloudUrl?: string;
+  uploading?: boolean;
 }
 
 const Profile = () => {
@@ -31,10 +34,21 @@ const Profile = () => {
 
   const { register, handleSubmit, control, reset } = useForm();
   const performerId = localStorage.getItem("userId") || "";
-
+  const [mediaSlots, setMediaSlots] = useState<MediaSlot[]>(
+    Array(10).fill({
+      url: "",
+      type: "none",
+      cloudUrl: "",
+      uploading: false,
+    })
+  );
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdatePerformerProfileMutation();
-  const { data: profileData, isLoading, refetch } = useGetPerformerProfileQuery();
+  const {
+    data: profileData,
+    isLoading,
+    refetch,
+  } = useGetPerformerProfileQuery();
 
   const { data: venues } = useGetAllVenuesQuery();
 
@@ -118,7 +132,12 @@ const Profile = () => {
     input.click();
   };
 
-  const handleMediaSelect = async (index: number) => {
+  const removeLogo = () => {
+    setLogoUrl("");
+    setLogoPreview("");
+  };
+
+  const handleMediaSelect = async (index: any) => {
     if (!isEditing) return;
 
     const input = document.createElement("input");
@@ -130,92 +149,199 @@ const Profile = () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // Check file size (25MB = 25 * 1024 * 1024 bytes)
-      if (file.size > 25 * 1024 * 1024) {
-        toast.error("File size must be less than 25MB");
+      const maxSize = 25 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error(
+          "File size exceeds 25MB limit. Please choose a smaller file."
+        );
         return;
       }
 
       try {
-        setIsUploading(true);
-        setUploadingIndex(index);
-        // First show preview
+        // Set uploading state for this slot
+        setMediaSlots((prev) =>
+          prev.map((slot, i) =>
+            i === index ? { ...slot, uploading: true } : slot
+          )
+        );
+
         const previewUrl = URL.createObjectURL(file);
         const isVideo = file.type.startsWith("video/");
 
-        const newPreviews = [...mediaPreviews];
-        newPreviews[index] = isVideo
-          ? { url: previewUrl, type: "video" }
-          : previewUrl;
-        setMediaPreviews(newPreviews);
+        // Update preview immediately
+        setMediaSlots((prev) =>
+          prev.map((slot, i) =>
+            i === index
+              ? {
+                  ...slot,
+                  url: previewUrl,
+                  type: isVideo ? "video" : "image",
+                  uploading: true,
+                }
+              : slot
+          )
+        );
 
-        // Create timestamp for signature
+        // Upload to Cloudinary
         const timestamp = Math.round(new Date().getTime() / 1000).toString();
-
-        // Create the string to sign
         const str_to_sign = `timestamp=${timestamp}${
           import.meta.env.VITE_CLOUDINARY_API_SECRET
         }`;
-
-        // Generate SHA-1 signature
         const signature = await generateSHA1(str_to_sign);
 
-        // Upload to Cloudinary using signed upload
         const formData = new FormData();
         formData.append("file", file);
         formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
         formData.append("timestamp", timestamp);
         formData.append("signature", signature);
 
-        // Use different upload endpoints for images vs videos
         const resourceType = isVideo ? "video" : "image";
         const response = await fetch(
           `https://api.cloudinary.com/v1_1/${
             import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
           }/${resourceType}/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
+          { method: "POST", body: formData }
         );
 
-        if (!response.ok) {
-          throw new Error("Upload failed");
-        }
+        if (!response.ok) throw new Error("Upload failed");
 
         const data = await response.json();
 
-        // Store the Cloudinary URL with type info
-        if (resourceType === "image") {
-          const newImages = [...images];
-          newImages[index] = data.secure_url;
-          setImages(newImages);
-        } else {
-          const newVideos = [...videos];
-          newVideos[index] = data.secure_url;
-          setVideos(newVideos);
-        }
-
-        toast.success(
-          `${
-            resourceType === "image" ? "Image" : "Video"
-          } uploaded successfully!`
+        // Update with final Cloudinary URL
+        setMediaSlots((prev) =>
+          prev.map((slot, i) =>
+            i === index
+              ? {
+                  ...slot,
+                  url: previewUrl,
+                  type: isVideo ? "video" : "image",
+                  cloudUrl: data.secure_url,
+                  uploading: false,
+                }
+              : slot
+          )
         );
+
+        toast.success(`${isVideo ? "Video" : "Image"} uploaded successfully!`);
       } catch (error) {
         console.error("Failed to upload media:", error);
         toast.error("Failed to upload media. Please try again.");
 
-        // Reset preview on error
-        const newPreviews = [...mediaPreviews];
-        newPreviews[index] = "";
-        setMediaPreviews(newPreviews);
-      } finally {
-        setIsUploading(false);
-        setUploadingIndex(null);
+        // Revert on error
+        setMediaSlots((prev) =>
+          prev.map((slot, i) =>
+            i === index ? { url: "", type: "none", uploading: false } : slot
+          )
+        );
       }
     };
 
     input.click();
+  };
+
+  // 3. Fixed media removal handler
+  const removeMedia = (index: any) => {
+    setMediaSlots((prev) =>
+      prev.map((slot, i) =>
+        i === index
+          ? { url: "", type: "none", cloudUrl: "", uploading: false }
+          : slot
+      )
+    );
+  };
+
+  // 4. Fixed render media preview function
+  const renderMediaPreview = (index: any) => {
+    const slot = mediaSlots[index];
+
+    if (slot.type === "none") {
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          {slot.uploading ? (
+            <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full h-full relative group">
+        {slot.uploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
+            <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {slot.type === "video" ? (
+          <div className="relative w-full h-full">
+            <video
+              className="w-full h-full object-cover"
+              src={slot.url}
+              controls
+              controlsList="nodownload noremoteplayback noplaybackrate"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {isEditing && (
+              <div className="absolute top-2 right-2 z-10 flex gap-2">
+                <button
+                  className="bg-black bg-opacity-70 text-white w-6 h-6 flex justify-center items-center rounded-full"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleMediaSelect(index);
+                  }}
+                >
+                  <Edit size={12} />
+                </button>
+                <button
+                  className="bg-black bg-opacity-70 text-white p-1 rounded-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeMedia(index);
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <img
+              src={slot.url}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
+            {isEditing && (
+              <div className="absolute top-2 right-2 z-10 flex gap-2">
+                <button
+                  className="bg-black bg-opacity-70 text-white p-1 rounded-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeMedia(index);
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const createEmptyMediaSlots = () => {
+    return Array(10)
+      .fill(null)
+      .map(() => ({
+        url: "",
+        type: "none",
+        cloudUrl: "",
+        uploading: false,
+      }));
   };
 
   // Helper function to generate SHA-1 signature
@@ -276,26 +402,83 @@ const Profile = () => {
         youtube: profileData.user.socialMediaLinks?.youtube || "",
       };
 
-      // Set images and videos from user data
-      if (profileData.user.images) {
-        const imagePreviews = profileData.user.images.map((url: string) => url);
-        setImages(imagePreviews);
-        setMediaPreviews(imagePreviews);
-      }
-
-      if (profileData.user.videos) {
-        const videoPreviews = profileData.user.videos.map((url: string) => ({
-          url,
-          type: "video",
-        }));
-        setVideos(profileData.user.videos);
-        setMediaPreviews((prev) => [...prev, ...videoPreviews]);
-      }
-
       if (profileData.user.profilePhoto) {
         setLogoUrl(profileData.user.profilePhoto);
         setLogoPreview(profileData.user.profilePhoto);
       }
+
+      // Set images and videos from user data
+
+      const initialSlots = createEmptyMediaSlots();
+
+      // Create a set to track which slots are already filled
+      const filledSlots = new Set();
+
+      // First pass: Load videos (prioritizing videos)
+      if (profileData.user.videos && Array.isArray(profileData.user.videos)) {
+        profileData.user.videos.forEach((url: any, i: any) => {
+          if (url) {
+            // Find the first available slot
+            let slotIndex = i;
+
+            // If this slot is already beyond our array or we need to find the next available slot
+            if (slotIndex >= 10) {
+              // Find the first available slot
+              for (let j = 0; j < 10; j++) {
+                if (!filledSlots.has(j)) {
+                  slotIndex = j;
+                  break;
+                }
+              }
+            }
+
+            // If we found an available slot within our array (0-9)
+            if (slotIndex < 10 && !filledSlots.has(slotIndex)) {
+              initialSlots[slotIndex] = {
+                url: url,
+                type: "video",
+                cloudUrl: url,
+                uploading: false,
+              };
+              filledSlots.add(slotIndex);
+            }
+          }
+        });
+      }
+
+      // Second pass: Load images (in remaining slots)
+      if (profileData.user.images && Array.isArray(profileData.user.images)) {
+        profileData.user.images.forEach((url: any, i: any) => {
+          if (url) {
+            // Find the first available slot
+            let slotIndex = i;
+
+            // If this slot is already filled or beyond our array
+            if (slotIndex >= 10 || filledSlots.has(slotIndex)) {
+              // Find the first available slot
+              for (let j = 0; j < 10; j++) {
+                if (!filledSlots.has(j)) {
+                  slotIndex = j;
+                  break;
+                }
+              }
+            }
+
+            // If we found an available slot within our array (0-9)
+            if (slotIndex < 10 && !filledSlots.has(slotIndex)) {
+              initialSlots[slotIndex] = {
+                url: url,
+                type: "image",
+                cloudUrl: url,
+                uploading: false,
+              };
+              filledSlots.add(slotIndex);
+            }
+          }
+        });
+      }
+
+      setMediaSlots(initialSlots);
 
       reset(formData);
     }
@@ -303,6 +486,14 @@ const Profile = () => {
 
   const onSubmit = async (data: any) => {
     try {
+      const images = mediaSlots
+        .filter((slot) => slot.type === "image" && slot.cloudUrl)
+        .map((slot) => slot.cloudUrl);
+
+      const videos = mediaSlots
+        .filter((slot) => slot.type === "video" && slot.cloudUrl)
+        .map((slot) => slot.cloudUrl);
+
       const transformedData = {
         // name: data.displayName,
         fullDragName: data.dragName,
@@ -331,8 +522,8 @@ const Profile = () => {
         receivePrivateEventRequests: data.privateEvents === "yes",
 
         profilePhoto: logoUrl,
-        images: images.filter((url) => url !== ""),
-        videos: videos.filter((url) => url !== ""),
+        images,
+        videos,
 
         socialMediaLinks: {
           facebook: data.facebook,
@@ -366,74 +557,6 @@ const Profile = () => {
 
   // Render media preview
   // Update the renderMediaPreview function in your component
-  const renderMediaPreview = (media: MediaItem | string, index: number) => {
-    if (!media) {
-      return (
-        <div className="w-full h-full flex items-center justify-center">
-          {uploadingIndex === index ? (
-            <div className="w-8 h-8 border-4 border-[#FF00A2] border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <span className="text-[#383838] text-2xl md:text-3xl">+</span>
-          )}
-        </div>
-      );
-    }
-
-    const isVideo = typeof media === "object" && media.type === "video";
-    const isImage =
-      typeof media === "string" ||
-      (typeof media === "object" && media.type === "image");
-    const url = typeof media === "string" ? media : media.url;
-
-    return (
-      <div className="w-full h-full relative">
-        {isVideo ? (
-          <div className="relative w-full h-full">
-            <video
-              className="w-full h-full object-cover"
-              src={url}
-              controls
-              controlsList="nodownload noremoteplayback noplaybackrate"
-              onClick={(e) => e.stopPropagation()}
-            />
-            {isEditing && (
-              <button
-                className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMediaSelect(index);
-                }}
-                disabled={isUploading}
-              >
-                {uploadingIndex === index ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  "Change"
-                )}
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            <img
-              src={url}
-              alt={`Preview ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-            {isEditing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
-                {uploadingIndex === index ? (
-                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <span className="text-white text-lg">Click to change</span>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    );
-  };
 
   return (
     <>
@@ -441,13 +564,38 @@ const Profile = () => {
         <div className="p-4 md:px-8 pb-4 max-w-[782px]">
           <div className="w-full max-w-[782px] bg-[#FF00A2] text-white p-4 rounded-[16px]">
             <div className="flex items-center gap-2">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 16H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 8V12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 16H12.01"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               <p className="font-['Space_Grotesk'] text-[16px] leading-[100%]">
-                Please complete your profile to get approved and start receiving booking requests.
+                Please complete your profile to get approved and start receiving
+                booking requests.
               </p>
             </div>
           </div>
@@ -790,10 +938,18 @@ const Profile = () => {
                   isDisabled={!isEditing}
                   closeMenuOnSelect={false}
                   options={[
-                    { value: "lip-sync", label: "Lip Sync" },
                     { value: "dance", label: "Dance" },
+                    { value: "burlesque", label: "Burlesque" },
+                    { value: "campy", label: "Campy" },
                     { value: "comedy", label: "Comedy" },
+                    { value: "dance-twirl", label: "Dance/Twirl" },
+                    { value: "drag-bingo", label: "Drag Bingo" },
+                    { value: "drag-karaoke", label: "Drag Karaoke" },
+                    { value: "drag-trivia", label: "Drag Trivia" },
+                    { value: "hosting", label: "Hosting" },
+                    { value: "lip-sync", label: "Lip Sync" },
                     { value: "live-singing", label: "Live Singing" },
+                    { value: "other", label: "Other" },
                   ]}
                   className="w-full max-w-[782px]"
                   styles={{
@@ -953,6 +1109,15 @@ const Profile = () => {
                     { value: "jazzBlues", label: "Jazz/Blues" },
                     { value: "disney", label: "Disney" },
                     { value: "other", label: "Other's" },
+                    {
+                      value: "alternative",
+                      label: "Alternative (Emo, Goth, etc.)",
+                    },
+                    { value: "comedy-mix", label: "Comedy Mix" },
+                    { value: "musical-theater", label: "Musical Theater" },
+                    { value: "the-70s", label: "The 70's" },
+                    { value: "the-90s", label: "The 90's" },
+                    { value: "the-2000s", label: "The 2000's" },
                   ]}
                   className="w-full max-w-[782px]"
                   styles={{
@@ -1041,12 +1206,25 @@ const Profile = () => {
                       { value: "jps-bar", label: "JP's Bar And Grill, Eagle" },
                       { value: "eagle", label: "Eagle" },
                       { value: "boheme", label: "Boheme" },
-                      { value: "rich's", label: "Rich's/The Montrose Country Club" },
-                      { value: "hamburger-marys", label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)" },
+                      {
+                        value: "rich's",
+                        label: "Rich's/The Montrose Country Club",
+                      },
+                      {
+                        value: "hamburger-marys",
+                        label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)",
+                      },
                       { value: "crush", label: "Crush (Dallas, TX)" },
                       { value: "havana", label: "Havana (Dallas TX)" },
-                      { value: "woodlawn", label: "Woodlawn Pointe (San Antonio, TX)" },
-                      { value: "custom", label: "+ Add Custom Venue", isCustom: true }
+                      {
+                        value: "woodlawn",
+                        label: "Woodlawn Pointe (San Antonio, TX)",
+                      },
+                      {
+                        value: "custom",
+                        label: "+ Add Custom Venue",
+                        isCustom: true,
+                      },
                     ]}
                     className="w-full max-w-[782px]"
                     styles={{
@@ -1082,7 +1260,9 @@ const Profile = () => {
                           height: "16px",
                           border: "2px solid #fff",
                           borderRadius: "50%",
-                          backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                          backgroundColor: state.isSelected
+                            ? "#FF00A2"
+                            : "transparent",
                         },
                       }),
                       multiValue: (base) => ({
@@ -1109,18 +1289,27 @@ const Profile = () => {
                     }}
                     placeholder="Select venues"
                     onChange={(selectedOptions) => {
-                      const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                      const lastOption =
+                        selectedOptions?.[selectedOptions.length - 1];
                       if (lastOption?.isCustom) {
                         const customValue = prompt("Enter custom venue name:");
                         if (customValue?.trim()) {
                           const newVenue = {
-                            value: customValue.toLowerCase().replace(/\s+/g, '-'),
-                            label: customValue.trim()
+                            value: customValue
+                              .toLowerCase()
+                              .replace(/\s+/g, "-"),
+                            label: customValue.trim(),
                           };
-                          const currentVenues = Array.isArray(field.value) ? [...field.value] : [];
-                          if (!currentVenues.some(v => 
-                            (typeof v === 'object' ? v.label : v) === customValue.trim()
-                          )) {
+                          const currentVenues = Array.isArray(field.value)
+                            ? [...field.value]
+                            : [];
+                          if (
+                            !currentVenues.some(
+                              (v) =>
+                                (typeof v === "object" ? v.label : v) ===
+                                customValue.trim()
+                            )
+                          ) {
                             field.onChange([...currentVenues, newVenue]);
                           }
                         }
@@ -1153,7 +1342,11 @@ const Profile = () => {
                       value: venue._id,
                       label: venue.name,
                     })) || []),
-                    { value: "custom", label: "+ Add Custom Host", isCustom: true }
+                    {
+                      value: "custom",
+                      label: "+ Add Custom Host",
+                      isCustom: true,
+                    },
                   ]}
                   className="w-full max-w-[782px]"
                   styles={{
@@ -1189,7 +1382,9 @@ const Profile = () => {
                         height: "16px",
                         border: "2px solid #fff",
                         borderRadius: "50%",
-                        backgroundColor: state.isSelected ? "#FF00A2" : "transparent",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
                       },
                     }),
                     multiValue: (base) => ({
@@ -1216,18 +1411,25 @@ const Profile = () => {
                   }}
                   placeholder="Select hosts"
                   onChange={(selectedOptions) => {
-                    const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                    const lastOption =
+                      selectedOptions?.[selectedOptions.length - 1];
                     if (lastOption?.isCustom) {
                       const customValue = prompt("Enter custom host name:");
                       if (customValue?.trim()) {
                         const newHost = {
-                          value: customValue.toLowerCase().replace(/\s+/g, '-'),
-                          label: customValue.trim()
+                          value: customValue.toLowerCase().replace(/\s+/g, "-"),
+                          label: customValue.trim(),
                         };
-                        const currentHosts = Array.isArray(field.value) ? [...field.value] : [];
-                        if (!currentHosts.some(h => 
-                          (typeof h === 'object' ? h.label : h) === customValue.trim()
-                        )) {
+                        const currentHosts = Array.isArray(field.value)
+                          ? [...field.value]
+                          : [];
+                        if (
+                          !currentHosts.some(
+                            (h) =>
+                              (typeof h === "object" ? h.label : h) ===
+                              customValue.trim()
+                          )
+                        ) {
                           field.onChange([...currentHosts, newHost]);
                         }
                       }
@@ -1325,7 +1527,7 @@ const Profile = () => {
           {/* Upload Logo */}
           <div className="w-full max-w-[782px] bg-black p-4">
             <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
-              Upload Profile Picture
+              Upload Logo
             </h2>
 
             <div
@@ -1335,13 +1537,28 @@ const Profile = () => {
               onClick={handleLogoUpload}
             >
               {logoPreview ? (
-                <div className="flex flex-col items-center">
-                  <img
-                    src={logoPreview}
-                    alt="Profile Picture"
-                    className="w-32 h-32 object-contain mb-4"
-                  />
-                  {/* <p className="text-[#FF00A2]">Click to change logo</p> */}
+                <div className="flex flex-col items-center ">
+                  <div className="relative ">
+                    <img
+                      src={logoPreview}
+                      alt="Venue Logo"
+                      className="w-36 h-36 object-cover mb-4 "
+                    />
+                    {isEditing && (
+                      <button
+                        className="absolute top-2 right-2 bg-black bg-opacity-70 text-white p-1 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeLogo();
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {isEditing && (
+                    <p className="text-[#FF00A2]">Click to change logo</p>
+                  )}
                 </div>
               ) : (
                 <>
@@ -1366,21 +1583,21 @@ const Profile = () => {
               Upload images/video
             </h2>
             <p className="font-['Space_Grotesk'] mt-4 md:mt-6 text-white font-normal text-[12px] md:text-[13px] leading-[120%] md:leading-[100%] align-middle">
-              Upload JPG, PNG, GIF, or MP4. Maximum 10 photos & 10 video clips
-              (max 25MB, 1200x800px or larger for images).
+              Upload JPG, PNG, GIF, or MP4. Maximum of 10 photos and video clips
+              combined (max 25MB, 1200x800px or larger for images).
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-5 md:mt-7">
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
                 <div
                   key={index}
-                  onClick={() => handleMediaSelect(index)}
+                  onClick={() => isEditing && handleMediaSelect(index)}
                   className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] overflow-hidden ${
                     isEditing
                       ? "cursor-pointer hover:bg-[#1A1A1A] transition-colors"
                       : "cursor-default"
                   }`}
                 >
-                  {renderMediaPreview(mediaPreviews[index], index)}
+                  {renderMediaPreview(index)}
                 </div>
               ))}
             </div>
