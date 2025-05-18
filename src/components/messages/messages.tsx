@@ -24,6 +24,8 @@ interface Chat {
   updatedAt: string;
   participant: Participant;
   eventName?: string;
+  performerUnreadCount?: number;
+  venueUnreadCount?: number;
 }
 
 const Messages = () => {
@@ -168,6 +170,7 @@ const Messages = () => {
             eventName={chat?.eventName}
             onClick={() => setSelectedChat(chat._id)}
             isSelected={selectedChat === chat._id}
+            unreadCount={chat?.performerUnreadCount}
           />
         ))}
       </div>

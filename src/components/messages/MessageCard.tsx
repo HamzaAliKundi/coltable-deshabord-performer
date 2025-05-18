@@ -8,7 +8,8 @@ interface MessageCardProps {
   onClick: () => void;
   isSelected: boolean;
   eventName?: string;
-  }
+  unreadCount?: number;
+}
 
 const MessageCard: React.FC<MessageCardProps> = ({
   senderName,
@@ -16,7 +17,8 @@ const MessageCard: React.FC<MessageCardProps> = ({
   image,
   onClick,
   isSelected,
-  eventName
+  eventName,
+  unreadCount
 }) => {
   return (
     <div 
@@ -32,7 +34,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
       <div className="flex flex-col md:flex-row items-center justify-between p-4 md:p-0">
         {/* Left section with avatar */}
         <div className="flex items-center w-full md:w-auto mb-4 md:mb-0">
-          <div className="ml-2">
+          <div className="ml-2 relative">
             <div className="w-18 h-18 rounded-full overflow-hidden border-white">
               {image ? (
                 <img src={image} alt="Profile" className="min-w-[50px] max-w-[50px] min-h-[50px] object-cover" />
@@ -40,6 +42,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
                 <MessageSquare className="w-full h-full text-gray-400" />
               )}
             </div>
+            {unreadCount ? (
+              <div className="absolute -top-2 -right-2 bg-[#FF00A2] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount}
+              </div>
+            ) : null}
           </div>
           <div className="hidden md:block w-[2px] h-16 bg-white/50 mx-4"></div>
         </div>
