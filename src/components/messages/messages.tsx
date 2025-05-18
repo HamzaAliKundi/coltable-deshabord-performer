@@ -4,6 +4,7 @@ import MessageCard from './MessageCard';
 import { useGetAllChatsQuery } from '../../apis/messages';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useGetPerformerProfileQuery } from '../../apis/profile';
+import io from 'socket.io-client';
 
 interface Participant {
   _id: string;
@@ -22,6 +23,7 @@ interface Chat {
   createdAt: string;
   updatedAt: string;
   participant: Participant;
+  eventName?: string;
 }
 
 const Messages = () => {
@@ -31,6 +33,33 @@ const Messages = () => {
   const navigate = useNavigate();
   const { data, isLoading, error, refetch: refetchChats } = useGetAllChatsQuery({});
   const { data: profileData, isLoading: isLoadingProfile, refetch: refetchProfile } = useGetPerformerProfileQuery({});
+
+  useEffect(() => {
+    if (!profileData?.user?._id) return;
+
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+      transports: ['websocket'],
+      reconnection: true,
+      timeout: 10000
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected in Messages component');
+      // Join room based on receiverId
+      socket.emit('join', profileData.user._id);
+    });
+
+    socket.on('all-chats', () => {
+      // Refetch chats without showing loader
+      refetchChats();
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('all-chats');
+      socket.disconnect();
+    };
+  }, [refetchChats, profileData?.user?._id]);
 
   const handleBack = async () => {
     setIsRefetching(true);
