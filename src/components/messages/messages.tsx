@@ -52,8 +52,10 @@ const Messages = () => {
     });
 
     socket.on('all-chats', () => {
-      // Refetch chats without showing loader
-      refetchChats();
+      // Only refetch if we're not in an active chat
+      if (!selectedChat) {
+        refetchChats();
+      }
     });
 
     return () => {
@@ -61,7 +63,7 @@ const Messages = () => {
       socket.off('all-chats');
       socket.disconnect();
     };
-  }, [refetchChats, profileData?.user?._id]);
+  }, [refetchChats, profileData?.user?._id, selectedChat]);
 
   const handleBack = async () => {
     setIsRefetching(true);
