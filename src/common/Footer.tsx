@@ -26,35 +26,31 @@ const Footer = () => {
               </p>
             </div>
             <h3 className="mt-12 text-[24px] font-bold capitalize">
-              Check Out Our Socials!
-            </h3>
-            <div className="flex gap-4 mt-2">
+            Check Out Our Socials!
+          </h3>
+          <div className="flex gap-4 mt-2">
+            <a href="https://www.facebook.com/profile.php?id=61574105501530" target="_blank" rel="noopener noreferrer">
               <img
                 src="/footer/facebook.png"
                 alt="Facebook"
                 className="w-[9.98px] h-[27px] cursor-pointer"
               />
+            </a>
+            <a href="https://x.com/Yourdragspace" target="_blank" rel="noopener noreferrer">
               <img
                 src="/footer/twitter.png"
                 alt="Twitter"
                 className="w-[18.61px] h-[27px] cursor-pointer"
               />
-              <img
-                src="/footer/chat.png"
-                alt="Twitter"
-                className="w-[16.36px] h-[27px] cursor-pointer"
-              />
-              <img
-                src="/footer/google-plus.png"
-                alt="Google"
-                className="w-[23.11px] h-[27px] cursor-pointer"
-              />
+            </a>
+            <a href="https://www.instagram.com/officialdragspace" target="_blank" rel="noopener noreferrer">
               <img
                 src="/footer/instagram.png"
-                alt="Google"
+                alt="Instagram"
                 className="w-[16.36px] h-[27px] cursor-pointer"
               />
-            </div>
+            </a>
+          </div>
           </div>
   
           {/* Useful Links */}
