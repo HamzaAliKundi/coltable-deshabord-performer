@@ -1556,7 +1556,7 @@ const Profile = () => {
                     )}
                   </div>
                   {isEditing && (
-                    <p className="text-[#FF00A2]">Click to change profile picture</p>
+                    <p className="text-[#FF00A2]">Click to change performer profile</p>
                   )}
                 </div>
               ) : (
