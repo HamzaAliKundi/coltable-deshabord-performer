@@ -21,7 +21,7 @@ interface EventFormData {
   startTime: string;
   endTime: string;
   description: string;
-  isPrivate: boolean | string;
+  isPrivate: boolean;
   logo: string;
   eventLocation: string;
 }
@@ -40,6 +40,7 @@ const CreateEvent = () => {
     reset,
     watch,
     control,
+    setValue,
     formState: { errors },
   } = useForm<EventFormData>();
 
@@ -152,7 +153,7 @@ const CreateEvent = () => {
         startTime: formatTime(event.startTime),
         endTime: formatTime(event.endTime),
         description: event.description,
-        isPrivate: event.isPrivate ? "true" : "false",
+        isPrivate: event.isPrivate,
         eventLocation: event.address,
       });
 
@@ -169,7 +170,7 @@ const CreateEvent = () => {
         startTime: "19:00",
         endTime: "20:00",
         description: "",
-        isPrivate: "false",
+        isPrivate: false,
         eventLocation: "",
       });
     }
@@ -193,6 +194,7 @@ const CreateEvent = () => {
         endTime: endTime.toISOString(),
         image: logoUrl,
         address: data.eventLocation,
+        isPrivate: data.isPrivate
       };
 
       if (id) {
@@ -409,8 +411,9 @@ const CreateEvent = () => {
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
-              {...register("isPrivate")}
-              value="false"
+              name="isPrivate"
+              onChange={() => setValue("isPrivate", false)}
+              defaultChecked
               className="w-5 h-5 text-[#FF00A2] focus:ring-[#FF00A2]"
             />
             <span className="text-white font-space-grotesk text-sm md:text-base">
@@ -420,8 +423,8 @@ const CreateEvent = () => {
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
-              {...register("isPrivate")}
-              value="true"
+              name="isPrivate"
+              onChange={() => setValue("isPrivate", true)}
               className="w-5 h-5 text-[#FF00A2] focus:ring-[#FF00A2]"
             />
             <span className="text-white font-space-grotesk text-sm md:text-base">
