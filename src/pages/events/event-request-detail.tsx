@@ -119,10 +119,10 @@ const EventRequestDetail = () => {
               {getEventsByVenuesById?.event?.audienceType}
             </li>
 
-            <li>
+            {/* <li>
               <span className="font-medium">Location:</span>{" "}
               {getEventsByVenuesById?.event?.address}
-            </li>
+            </li> */}
           </ul>
         </div>
 
