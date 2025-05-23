@@ -53,13 +53,9 @@ const EventRequestDetail = () => {
       "drag-brunch": "Drag Brunch",
       "drag-bingo": "Drag Bingo",
       "drag-trivia": "Drag Trivia",
-      "comedy-show": "Comedy Show",
-      "music-concert": "Music Concert",
-      "dance-performance": "Dance Performance",
-      "theater-show": "Theater Show",
       other: "Other",
     };
-    return types[type] || type;
+    return types[type] || "Other";
   };
 
   const selectedCovering = getEventsByVenuesById?.event?.hasCoverings;
@@ -87,7 +83,7 @@ const EventRequestDetail = () => {
         <img
           src={getEventsByVenuesById?.event?.image}
           alt={getEventsByVenuesById?.event?.title}
-          className="w-full md:max-w-[550px] h-auto mx-auto rounded-lg"
+          className="w-full md:max-w-[550px] h-auto max-h-[300px] object-contain mx-auto rounded-lg"
         />
       </div>
 
@@ -120,17 +116,13 @@ const EventRequestDetail = () => {
 
             <li>
               <span className="font-medium">Audience:</span>{" "}
-              {getEventsByVenuesById?.event?.audienceType === "adults"
-                ? "Adults Only"
-                : getEventsByVenuesById?.event?.audienceType === "children"
-                ? "Children"
-                : "All Ages"}
+              {getEventsByVenuesById?.event?.audienceType}
             </li>
 
-            <li>
+            {/* <li>
               <span className="font-medium">Location:</span>{" "}
               {getEventsByVenuesById?.event?.address}
-            </li>
+            </li> */}
           </ul>
         </div>
 

@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Anchor, Omega } from "lucide-react";
+import { eventOptions } from "../../utils/create-event/dropDownData";
 
 interface EventDetailProps {
   eventId: string | undefined;
@@ -123,16 +124,10 @@ const EventDetail: React.FC<EventDetailProps> = ({
               <div className="flex items-center gap-2">
                 <Anchor color="#FF00A2" size={16} />
                 <p className="font-['Space_Grotesk'] text-white">
-                  {event?.type}
+                  {eventOptions.find((option) => option.value === event.type)
+                    ?.label ?? "Other"}
                 </p>
               </div>
-
-              {/* <div className="flex items-center gap-2">
-                <Omega color="#FF00A2" size={16} />
-                <p className="font-['Space_Grotesk'] text-white">
-                  {event?.theme}
-                </p>
-              </div> */}
             </div>
 
             <div className="space-y-1">
