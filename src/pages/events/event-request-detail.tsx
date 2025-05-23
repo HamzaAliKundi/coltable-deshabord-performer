@@ -83,7 +83,7 @@ const EventRequestDetail = () => {
         <img
           src={getEventsByVenuesById?.event?.image}
           alt={getEventsByVenuesById?.event?.title}
-          className="w-full md:max-w-[550px] h-auto mx-auto rounded-lg"
+          className="w-full md:max-w-[550px] h-auto max-h-[300px] object-contain mx-auto rounded-lg"
         />
       </div>
 
