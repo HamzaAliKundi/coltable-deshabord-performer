@@ -449,7 +449,7 @@ const CreateEvent = () => {
                   alt="Venue Logo"
                   className="w-32 h-32 object-contain mb-4"
                 />
-                <p className="text-[#FF00A2]">Click to change logo</p>
+                <p className="text-[#FF00A2]">Click to Update Flier</p>
               </div>
             ) : (
               <>
@@ -461,7 +461,7 @@ const CreateEvent = () => {
                   Of [Specify Dimensions, E.G., 500x500px]
                 </p>
                 <div className="bg-[#FF00A2] text-black rounded-lg px-8 py-3 inline-block font-['Space_Grotesk'] text-[16px] leading-[100%] tracking-[0%] text-center capitalize">
-                  Upload
+                Upload Event Flier
                 </div>
               </>
             )}
