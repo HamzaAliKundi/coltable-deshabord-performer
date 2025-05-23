@@ -564,37 +564,40 @@ const Profile = () => {
         <div className="p-4 md:px-8 pb-4 max-w-[782px]">
           <div className="w-full max-w-[782px] bg-[#FF00A2] text-white p-4 rounded-[16px]">
             <div className="flex items-center gap-2">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 8V12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M12 16H12.01"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="font-['Space_Grotesk'] text-[16px] leading-[100%]">
-                Complete your profile to get approved and start accessing available features.
+              <div className="flex items-center justify-center h-full">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="min-w-[24px] min-h-[24px] shrink-0 self-center"
+                >
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 8V12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 16H12.01"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <p className="font-['Space_Grotesk'] text-[16px] leading-[140%]">
+              Go ahead and complete that profile—give the world a reason to stare! Once you hit submit, we’ll take a moment to review and make sure everything’s giving authentic excellence and not hot mess express. Keep it classy: no indecent language, no fighting words, and definitely no “oops, I forgot my clothes” moments. Serve face, not disgrace.
               </p>
             </div>
           </div>
