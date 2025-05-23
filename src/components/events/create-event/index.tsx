@@ -435,7 +435,7 @@ const CreateEvent = () => {
 
         <div className="w-full max-w-[782px] self-center bg-black p-4">
           <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
-            Upload Logo
+          Upload Event Flier
           </h2>
 
           <div
