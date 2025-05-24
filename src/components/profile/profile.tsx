@@ -4,6 +4,9 @@ import {
   useGetAllVenuesQuery,
   useGetPerformerProfileQuery,
   useUpdatePerformerProfileMutation,
+  useAddImageMutation,
+  useGetAllImagesQuery,
+  useDeletePendingImageMutation,
 } from "../../apis/profile";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -16,13 +19,13 @@ interface MediaSlot {
   type: "image" | "video" | "none";
   cloudUrl?: string;
   uploading?: boolean;
+  pendingId?: string;
+  isPending?: boolean;
 }
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [mediaUrls, setMediaUrls] = useState<(MediaItem | string)[]>(
-    Array(10).fill("")
-  );
+  const [mediaUrls, setMediaUrls] = useState<string[]>(Array(10).fill(""));
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
@@ -37,7 +40,7 @@ const Profile = () => {
   const [mediaSlots, setMediaSlots] = useState<MediaSlot[]>(
     Array(10).fill({
       url: "",
-      type: "none",
+      type: "none" as "none",
       cloudUrl: "",
       uploading: false,
     })
@@ -48,14 +51,17 @@ const Profile = () => {
     data: profileData,
     isLoading,
     refetch,
-  } = useGetPerformerProfileQuery();
+  } = useGetPerformerProfileQuery(undefined);
 
-  const { data: venues } = useGetAllVenuesQuery();
+  const { data: venues } = useGetAllVenuesQuery(undefined);
 
   // State for managing media previews
-  const [mediaPreviews, setMediaPreviews] = useState<(MediaItem | string)[]>(
-    Array(4).fill("")
-  );
+  const [mediaPreviews, setMediaPreviews] = useState<string[]>(Array(4).fill(""));
+
+  const [addImage] = useAddImageMutation();
+  const { data: allImagesData, refetch: refetchAllImages } = useGetAllImagesQuery(undefined, { skip: !profileData?.user?.isProfileCompleted });
+  console.log(allImagesData);
+  const [deletePendingImage] = useDeletePendingImageMutation();
 
   const handleLogoUpload = async () => {
     if (!isEditing) return;
@@ -158,7 +164,6 @@ const Profile = () => {
       }
 
       try {
-        // Set uploading state for this slot
         setMediaSlots((prev) =>
           prev.map((slot, i) =>
             i === index ? { ...slot, uploading: true } : slot
@@ -168,7 +173,6 @@ const Profile = () => {
         const previewUrl = URL.createObjectURL(file);
         const isVideo = file.type.startsWith("video/");
 
-        // Update preview immediately
         setMediaSlots((prev) =>
           prev.map((slot, i) =>
             i === index
@@ -207,27 +211,44 @@ const Profile = () => {
 
         const data = await response.json();
 
-        // Update with final Cloudinary URL
-        setMediaSlots((prev) =>
-          prev.map((slot, i) =>
-            i === index
-              ? {
-                  ...slot,
-                  url: previewUrl,
-                  type: isVideo ? "video" : "image",
-                  cloudUrl: data.secure_url,
-                  uploading: false,
-                }
-              : slot
-          )
-        );
-
-        toast.success(`${isVideo ? "Video" : "Image"} uploaded successfully!`);
+        if (profileData?.user?.isProfileCompleted && !isVideo) {
+          // If profile is completed and this is an image, send to admin approval
+          await addImage({ image: data.secure_url });
+          toast.success("Image uploaded for admin approval!");
+          refetchAllImages();
+          setMediaSlots((prev) =>
+            prev.map((slot, i) =>
+              i === index
+                ? {
+                    ...slot,
+                    url: previewUrl,
+                    type: "image",
+                    cloudUrl: data.secure_url,
+                    uploading: false,
+                  }
+                : slot
+            )
+          );
+        } else {
+          // Normal flow for videos or before profile completion
+          setMediaSlots((prev) =>
+            prev.map((slot, i) =>
+              i === index
+                ? {
+                    ...slot,
+                    url: previewUrl,
+                    type: isVideo ? "video" : "image",
+                    cloudUrl: data.secure_url,
+                    uploading: false,
+                  }
+                : slot
+            )
+          );
+          toast.success(`${isVideo ? "Video" : "Image"} uploaded successfully!`);
+        }
       } catch (error) {
         console.error("Failed to upload media:", error);
         toast.error("Failed to upload media. Please try again.");
-
-        // Revert on error
         setMediaSlots((prev) =>
           prev.map((slot, i) =>
             i === index ? { url: "", type: "none", uploading: false } : slot
@@ -314,18 +335,21 @@ const Profile = () => {
               alt={`Preview ${index + 1}`}
               className="w-full h-full object-cover"
             />
-            {isEditing && (
-              <div className="absolute top-2 right-2 z-10 flex gap-2">
-                <button
-                  className="bg-black bg-opacity-70 text-white p-1 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeMedia(index);
-                  }}
-                >
-                  <X size={16} />
-                </button>
+            {slot.isPending && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <span className="text-white bg-[#FF00A2] px-2 py-1 rounded">Pending Approval</span>
               </div>
+            )}
+            {isEditing && !slot.isPending && (
+              <button
+                className="absolute top-2 right-2 bg-black bg-opacity-70 text-white p-1 rounded-full z-10"
+                onClick={e => {
+                  e.stopPropagation();
+                  removeMedia(index);
+                }}
+              >
+                <X size={16} />
+              </button>
             )}
           </>
         )}
@@ -338,7 +362,7 @@ const Profile = () => {
       .fill(null)
       .map(() => ({
         url: "",
-        type: "none",
+        type: "none" as "none",
         cloudUrl: "",
         uploading: false,
       }));
@@ -409,7 +433,7 @@ const Profile = () => {
 
       // Set images and videos from user data
 
-      const initialSlots = createEmptyMediaSlots();
+      const initialSlots: MediaSlot[] = createEmptyMediaSlots();
 
       // Create a set to track which slots are already filled
       const filledSlots = new Set();
@@ -436,7 +460,7 @@ const Profile = () => {
             if (slotIndex < 10 && !filledSlots.has(slotIndex)) {
               initialSlots[slotIndex] = {
                 url: url,
-                type: "video",
+                type: 'video' as 'video',
                 cloudUrl: url,
                 uploading: false,
               };
@@ -468,7 +492,7 @@ const Profile = () => {
             if (slotIndex < 10 && !filledSlots.has(slotIndex)) {
               initialSlots[slotIndex] = {
                 url: url,
-                type: "image",
+                type: 'image' as 'image',
                 cloudUrl: url,
                 uploading: false,
               };
@@ -478,17 +502,36 @@ const Profile = () => {
         });
       }
 
+      // Now fill empty slots with pending images
+      if (profileData.user.isProfileCompleted && allImagesData) {
+        const pendingImages = (allImagesData || []).filter((img: any) => img.status === "pending");
+        let pendingIdx = 0;
+        for (let i = 0; i < 10; i++) {
+          if (initialSlots[i].type === "none" && pendingIdx < pendingImages.length) {
+            initialSlots[i] = {
+              url: pendingImages[pendingIdx].image,
+              type: "image" as "image",
+              cloudUrl: pendingImages[pendingIdx].image,
+              uploading: false,
+              pendingId: pendingImages[pendingIdx]._id,
+              isPending: true,
+            };
+            pendingIdx++;
+          }
+        }
+      }
+
       setMediaSlots(initialSlots);
 
       reset(formData);
     }
-  }, [profileData, reset, venues]);
+  }, [profileData, reset, venues, allImagesData]);
 
   const onSubmit = async (data: any) => {
     try {
-      const images = mediaSlots
-        .filter((slot) => slot.type === "image" && slot.cloudUrl)
-        .map((slot) => slot.cloudUrl);
+      let images: string[] = mediaSlots
+        .filter((slot) => slot.type === "image" && slot.cloudUrl && !slot.isPending)
+        .map((slot) => slot.cloudUrl as string);
 
       const videos = mediaSlots
         .filter((slot) => slot.type === "video" && slot.cloudUrl)
@@ -543,6 +586,22 @@ const Profile = () => {
     }
   };
 
+  const removePendingImage = async (index: number, pendingId: string) => {
+    try {
+      await deletePendingImage(pendingId).unwrap();
+      toast.success("Pending image removed");
+      // Remove from slot
+      setMediaSlots((prev) =>
+        prev.map((slot, i) =>
+          i === index ? { url: "", type: "none", cloudUrl: "", uploading: false } : slot
+        )
+      );
+      refetchAllImages();
+    } catch (e) {
+      toast.error("Failed to remove pending image");
+    }
+  };
+
   if (isLoading)
     return (
       <div className="flex mt-16 justify-center min-h-screen max-w-[850px]">
@@ -554,9 +613,6 @@ const Profile = () => {
     "w-full max-w-[782px] h-[46px] rounded-[16px] bg-[#0D0D0D] text-white px-4 py-2.5 font-['Space_Grotesk'] text-[16px] md:text-[16px] leading-[100%] capitalize placeholder-[#383838] focus:outline-none focus:ring-2 focus:ring-[#FF00A2]";
   const labelClass =
     "block font-['Space_Grotesk'] font-normal text-[14px] md:text-[18px] leading-[100%] capitalize text-white mb-2";
-
-  // Render media preview
-  // Update the renderMediaPreview function in your component
 
   return (
     <>
@@ -597,7 +653,7 @@ const Profile = () => {
                 </svg>
               </div>
               <p className="font-['Space_Grotesk'] text-[16px] leading-[140%]">
-              Go ahead and complete that profile—give the world a reason to stare! Once you hit submit, we’ll take a moment to review and make sure everything’s giving authentic excellence and not hot mess express. Keep it classy: no indecent language, no fighting words, and definitely no “oops, I forgot my clothes” moments. Serve face, not disgrace.
+              Go ahead and complete that profile—give the world a reason to stare! Once you hit submit, we'll take a moment to review and make sure everything's giving authentic excellence and not hot mess express. Keep it classy: no indecent language, no fighting words, and definitely no "oops, I forgot my clothes" moments. Serve face, not disgrace.
               </p>
             </div>
           </div>
@@ -1589,17 +1645,39 @@ const Profile = () => {
               combined (max 25MB, 1200x800px or larger for images).
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-5 md:mt-7">
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
+              {mediaSlots.map((slot, idx) => (
                 <div
-                  key={index}
-                  onClick={() => isEditing && handleMediaSelect(index)}
-                  className={`aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] overflow-hidden ${
-                    isEditing
-                      ? "cursor-pointer hover:bg-[#1A1A1A] transition-colors"
-                      : "cursor-default"
+                  key={idx}
+                  onClick={() => isEditing && slot.type === "none" && handleMediaSelect(idx)}
+                  className={`relative aspect-square w-full max-w-[214px] bg-[#0D0D0D] rounded-[12px] md:rounded-[16px] overflow-hidden ${
+                    isEditing && slot.type === "none" ? "cursor-pointer hover:bg-[#1A1A1A] transition-colors" : "cursor-default"
                   }`}
                 >
-                  {renderMediaPreview(index)}
+                  {slot.type === "none" ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-[#383838] text-2xl md:text-3xl">+</span>
+                    </div>
+                  ) : (
+                    <>
+                      <img src={slot.url} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                      {slot.isPending && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                          <span className="text-white bg-[#FF00A2] px-2 py-1 rounded">Pending Approval</span>
+                        </div>
+                      )}
+                      {isEditing && !slot.isPending && (
+                        <button
+                          className="absolute top-2 right-2 bg-black bg-opacity-70 text-white p-1 rounded-full z-10"
+                          onClick={e => {
+                            e.stopPropagation();
+                            removeMedia(idx);
+                          }}
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               ))}
             </div>

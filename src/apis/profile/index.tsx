@@ -31,7 +31,23 @@ export const profileApi = createApi({
         body: data,
       }),
     }),
+    addImage: builder.mutation({
+      query: (data: { image: string }) => ({
+        url: "/api/performer/media/add-image",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getAllImages: builder.query({
+      query: () => "/api/performer/media/get-all-images",
+    }),
+    deletePendingImage: builder.mutation({
+      query: (id: string) => ({
+        url: `/api/performer/media/delete-image/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
-export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useGetAllVenuesQuery, useChangePasswordMutation } = profileApi;
+export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useGetAllVenuesQuery, useChangePasswordMutation, useAddImageMutation, useGetAllImagesQuery, useDeletePendingImageMutation } = profileApi;
