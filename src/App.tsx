@@ -22,6 +22,7 @@ import ForgotPassword from "./components/auth/forgot-password";
 import PasswordResetEmailSent from "./components/auth/PasswordResetEmailSent";
 import PasswordChangedSuccess from "./components/auth/PasswordChangedSuccess";
 import EventRequestDetail from "./pages/events/event-request-detail";
+import MediaPage from "./pages/media";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />  
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="profile/media" element={<MediaPage />} />
             <Route path="tools" element={<ToolsPage />} />
             <Route path="review" element={<ReviewsPage />} />
             <Route path="events" element={<EventsPage />} />

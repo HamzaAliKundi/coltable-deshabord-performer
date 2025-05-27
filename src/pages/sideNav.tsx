@@ -15,7 +15,13 @@ interface TotalUnreadCountEvent {
 }
 
 const navItems = [
-  { name: "My Profile", path: "/profile" },
+  { 
+    name: "My Profile", 
+    path: "/profile",
+    children: [
+      { name: "Media", path: "/profile/media" }
+    ]
+  },
   { name: "Messages", path: "/messages" },
   { name: "Review", path: "/review" },
   { name: "Events", path: "/events" },
@@ -108,6 +114,25 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
                     </span>
                   )}
                 </NavLink>
+                {/* Render nested children if present */}
+                {item.children && (
+                  <ul className="pl-6 mt-1 space-y-1">
+                    {item.children.map((child) => (
+                      <li key={child.name}>
+                        <NavLink
+                          to={child.path}
+                          className={({ isActive }) =>
+                            `block px-4 py-1 font-['Space_Grotesk'] text-[15px] leading-[100%] align-middle ${
+                              isActive ? "text-[#FFFFFF]" : "text-[#AAAAAA]"
+                            }`
+                          }
+                        >
+                          {child.name}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
             {isSidebarOpen && (
