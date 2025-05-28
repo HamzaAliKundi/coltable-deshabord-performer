@@ -28,7 +28,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const onSubmit = async (data: any) => {
     setIsLoading(true);
     try {
-      const res:any = await login(data);
+      const res:any = await login({ ...data, userType: "performer" });
 
       if(res?.data?.success === true) {
         localStorage.setItem("token", res?.data?.token);
