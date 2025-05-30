@@ -63,59 +63,68 @@ const Profile = () => {
           return;
         }
 
-        try {
-          setLogoUploading(true);
-          setIsUploading(true);
-          // First show preview
-          const reader = new FileReader();
-          reader.onload = () => {
-            setLogoPreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
-
-          // Create timestamp for signature
-          const timestamp = Math.round(new Date().getTime() / 1000).toString();
-
-          // Create the string to sign
-          const str_to_sign = `timestamp=${timestamp}${
-            import.meta.env.VITE_CLOUDINARY_API_SECRET
-          }`;
-
-          // Generate SHA-1 signature
-          const signature = await generateSHA1(str_to_sign);
-
-          // Upload to Cloudinary using signed upload
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
-          formData.append("timestamp", timestamp);
-          formData.append("signature", signature);
-
-          const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${
-              import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-            }/image/upload`,
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || "Upload failed");
+        // Check image dimensions
+        const img = new window.Image();
+        img.onload = async () => {
+          if (img.width !== 350 || img.height !== 450) {
+            toast("For best results, use a 350x450px image. Other sizes may not display as expected.", { icon: "⚠️" });
           }
+          try {
+            setLogoUploading(true);
+            setIsUploading(true);
+            // First show preview
+            const reader = new FileReader();
+            reader.onload = () => {
+              setLogoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
 
-          const data = await response.json();
-          setLogoUrl(data.secure_url);
-          toast.success("Logo uploaded successfully!");
-        } catch (error) {
-          console.error("Failed to upload logo:", error);
-          toast.error("Failed to upload logo. Please try again.");
-        } finally {
-          setLogoUploading(false);
-          setIsUploading(false);
-        }
+            // Create timestamp for signature
+            const timestamp = Math.round(new Date().getTime() / 1000).toString();
+
+            // Create the string to sign
+            const str_to_sign = `timestamp=${timestamp}${
+              import.meta.env.VITE_CLOUDINARY_API_SECRET
+            }`;
+
+            // Generate SHA-1 signature
+            const signature = await generateSHA1(str_to_sign);
+
+            // Upload to Cloudinary using signed upload
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
+            formData.append("timestamp", timestamp);
+            formData.append("signature", signature);
+
+            const response = await fetch(
+              `https://api.cloudinary.com/v1_1/${
+                import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+              }/image/upload`,
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error?.message || "Upload failed");
+            }
+
+            const data = await response.json();
+            setLogoUrl(data.secure_url);
+            toast.success("Logo uploaded successfully!");
+          } catch (error) {
+            console.error("Failed to upload logo:", error);
+            toast.error("Failed to upload logo. Please try again.");
+          } finally {
+            setLogoUploading(false);
+            setIsUploading(false);
+          }
+        };
+        // Read the file as a data URL to check dimensions
+        img.src = URL.createObjectURL(file);
       }
     };
 
@@ -1259,6 +1268,9 @@ const Profile = () => {
             <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
               Upload Logo
             </h2>
+            <p className="text-[#FF00A2] text-sm mb-2 font-['Space_Grotesk']">
+              For best results, your profile picture should be 350x450px. Other sizes may not display as expected.
+            </p>
 
             <div
               className={`bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center ${
