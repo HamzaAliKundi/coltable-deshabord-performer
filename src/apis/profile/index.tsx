@@ -24,6 +24,9 @@ export const profileApi = createApi({
     getAllVenues: builder.query({
       query: () => "/api/performer/venue/get-all-venues",
     }),
+    getAllPerformers: builder.query({
+      query: () => "/api/venue/performer/get-all-performers",
+    }),
     changePassword: builder.mutation({
       query: (data: { newPassword: string }) => ({
         url: "/auth/user/change-password",
@@ -34,4 +37,4 @@ export const profileApi = createApi({
   }),
 });
 
-export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useGetAllVenuesQuery, useChangePasswordMutation } = profileApi;
+export const { useGetPerformerProfileQuery, useUpdatePerformerProfileMutation, useGetAllVenuesQuery, useGetAllPerformersQuery, useChangePasswordMutation } = profileApi;

@@ -1,6 +1,7 @@
 import { Controller, useForm } from "react-hook-form";
 import Select from "react-select";
 import {
+  useGetAllPerformersQuery,
   useGetAllVenuesQuery,
   useGetPerformerProfileQuery,
   useUpdatePerformerProfileMutation,
@@ -35,6 +36,9 @@ const Profile = () => {
 
   // @ts-ignore
   const { data: venues } = useGetAllVenuesQuery();
+  // @ts-ignore
+  const { data: performers } = useGetAllPerformersQuery();
+  console.log(performers);
 
   const [logoUrl, setLogoUrl] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
@@ -178,16 +182,19 @@ const Profile = () => {
         })),
         illusions: profileData.user.illusions || [],
         musicGenres: sortedGenres,
-        venues: profileData.user.venues?.map((v: any) => ({
-          value: v,
-          label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
-        })),
+        venues: profileData.user.venues?.map((venueId: any) => {
+          const found = Array.isArray(venues) ? venues.find((v: any) => v._id === venueId) : null;
+          return {
+            value: venueId,
+            label: found?.name || venueId,
+          };
+        }),
         hosts:
           profileData.user.hosts?.map((hostId: string) => {
-            const venue = venues?.find((v: any) => v._id === hostId);
+            const found = Array.isArray(performers) ? performers.find((p: any) => p._id === hostId) : null;
             return {
               value: hostId,
-              label: venue?.name || hostId,
+              label: found?.fullDragName || found?.name || found?.firstName || hostId,
             };
           }) || [],
         privateEvents: profileData.user.receivePrivateEventRequests
@@ -209,7 +216,7 @@ const Profile = () => {
 
       reset(formData);
     }
-  }, [profileData, reset, venues]);
+  }, [profileData, reset, venues, performers]);
 
   const onSubmit = async (data: any) => {
     if (!logoUrl) {
@@ -919,131 +926,130 @@ const Profile = () => {
               name="venues"
               control={control}
               rules={{ required: true }}
-              render={({ field }) => (
-                <div className="w-full max-w-[782px]">
-                  <Select
-                    {...field}
-                    isMulti
-                    isDisabled={!isEditing}
-                    closeMenuOnSelect={false}
-                    options={[
-                      { value: "jps-bar", label: "JP's Bar And Grill, Eagle" },
-                      { value: "eagle", label: "Eagle" },
-                      { value: "boheme", label: "Boheme" },
-                      {
-                        value: "rich's",
-                        label: "Rich's/The Montrose Country Club",
-                      },
-                      {
-                        value: "hamburger-marys",
-                        label: "Hamburger Mary's/YKYK, HALO (Bryan, TX)",
-                      },
-                      { value: "crush", label: "Crush (Dallas, TX)" },
-                      { value: "havana", label: "Havana (Dallas TX)" },
-                      {
-                        value: "woodlawn",
-                        label: "Woodlawn Pointe (San Antonio, TX)",
-                      },
-                      {
-                        value: "custom",
-                        label: "+ Add Custom Venue",
-                        isCustom: true,
-                      },
-                    ]}
-                    className="w-full max-w-[782px]"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: "46px",
-                        background: "#0D0D0D",
-                        border: "1px solid #383838",
-                        borderRadius: "16px",
-                        boxShadow: "none",
-                        "&:hover": {
-                          border: "1px solid #383838",
-                        },
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        background: "#1D1D1D",
-                        border: "1px solid #383838",
-                        borderRadius: "4px",
-                      }),
-                      option: (base, state) => ({
-                        ...base,
-                        background: state.isFocused ? "#383838" : "#1D1D1D",
-                        color: "#fff",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        "&::before": {
-                          content: '""',
-                          display: "block",
-                          width: "16px",
-                          height: "16px",
-                          border: "2px solid #fff",
-                          borderRadius: "50%",
-                          backgroundColor: state.isSelected
-                            ? "#FF00A2"
-                            : "transparent",
-                        },
-                      }),
-                      multiValue: (base) => ({
-                        ...base,
-                        background: "#383838",
-                        borderRadius: "4px",
-                      }),
-                      multiValueLabel: (base) => ({
-                        ...base,
-                        color: "#fff",
-                      }),
-                      multiValueRemove: (base) => ({
-                        ...base,
-                        color: "#fff",
-                        ":hover": {
-                          background: "#4a4a4a",
-                          borderRadius: "0 4px 4px 0",
-                        },
-                      }),
-                      input: (base) => ({
-                        ...base,
-                        color: "#fff",
-                      }),
-                    }}
-                    placeholder="Select venues"
-                    onChange={(selectedOptions) => {
-                      const lastOption =
-                        selectedOptions?.[selectedOptions.length - 1];
-                      if (lastOption?.isCustom) {
-                        const customValue = prompt("Enter custom venue name:");
-                        if (customValue?.trim()) {
-                          const newVenue = {
-                            value: customValue
-                              .toLowerCase()
-                              .replace(/\s+/g, "-"),
-                            label: customValue.trim(),
+              render={({ field }) => {
+                // Map and sort venues from API
+                const venueOptions = [
+                  ...(Array.isArray(venues)
+                    ? venues
+                        .map((venue: any) => {
+                          const label = venue.name || venue.label || venue.value || "";
+                          return {
+                            value: venue._id || venue.value || label.toLowerCase().replace(/\s+/g, "-"),
+                            label,
                           };
-                          const currentVenues = Array.isArray(field.value)
-                            ? [...field.value]
-                            : [];
-                          if (
-                            !currentVenues.some(
-                              (v) =>
-                                (typeof v === "object" ? v.label : v) ===
-                                customValue.trim()
-                            )
-                          ) {
-                            field.onChange([...currentVenues, newVenue]);
+                        })
+                        .filter(v => v.label) // Only keep venues with a label
+                        .sort((a, b) => a.label.localeCompare(b.label))
+                    : []),
+                  {
+                    value: "custom",
+                    label: "+ Add Custom Venue",
+                    isCustom: true,
+                  },
+                ];
+                return (
+                  <div className="w-full max-w-[782px]">
+                    <Select
+                      {...field}
+                      isMulti
+                      isDisabled={!isEditing}
+                      closeMenuOnSelect={false}
+                      options={venueOptions}
+                      className="w-full max-w-[782px]"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: "46px",
+                          background: "#0D0D0D",
+                          border: "1px solid #383838",
+                          borderRadius: "16px",
+                          boxShadow: "none",
+                          "&:hover": {
+                            border: "1px solid #383838",
+                          },
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          background: "#1D1D1D",
+                          border: "1px solid #383838",
+                          borderRadius: "4px",
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          background: state.isFocused ? "#383838" : "#1D1D1D",
+                          color: "#fff",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          "&::before": {
+                            content: '""',
+                            display: "block",
+                            width: "16px",
+                            height: "16px",
+                            border: "2px solid #fff",
+                            borderRadius: "50%",
+                            backgroundColor: state.isSelected
+                              ? "#FF00A2"
+                              : "transparent",
+                          },
+                        }),
+                        multiValue: (base) => ({
+                          ...base,
+                          background: "#383838",
+                          borderRadius: "4px",
+                        }),
+                        multiValueLabel: (base) => ({
+                          ...base,
+                          color: "#fff",
+                        }),
+                        multiValueRemove: (base) => ({
+                          ...base,
+                          color: "#fff",
+                          ":hover": {
+                            background: "#4a4a4a",
+                            borderRadius: "0 4px 4px 0",
+                          },
+                        }),
+                        input: (base) => ({
+                          ...base,
+                          color: "#fff",
+                        }),
+                      }}
+                      placeholder="Select venues"
+                      onChange={(selectedOptions) => {
+                        const lastOption =
+                          selectedOptions?.[selectedOptions.length - 1];
+                        if (lastOption?.isCustom) {
+                          const customValue = prompt("Enter custom venue name:");
+                          if (customValue?.trim()) {
+                            const newVenue = {
+                              value: customValue
+                                .toLowerCase()
+                                .replace(/\s+/g, "-"),
+                              label: customValue.trim(),
+                            };
+                            const currentVenues = Array.isArray(field.value)
+                              ? [...field.value]
+                              : [];
+                            if (
+                              !currentVenues.some(
+                                (v) =>
+                                  (typeof v === "object" ? v.label : v) ===
+                                  customValue.trim()
+                              )
+                            ) {
+                              field.onChange([...currentVenues, newVenue]);
+                            }
                           }
+                          return;
                         }
-                        return;
-                      }
-                      field.onChange(selectedOptions);
-                    }}
-                  />
-                </div>
-              )}
+                        field.onChange(selectedOptions);
+                      }}
+                    />
+                  </div>
+                );
+              }}
             />
           </div>
 
@@ -1062,9 +1068,9 @@ const Profile = () => {
                   isDisabled={!isEditing}
                   closeMenuOnSelect={false}
                   options={[
-                    ...(venues?.map((venue: any) => ({
-                      value: venue._id,
-                      label: venue.name,
+                    ...(performers?.map((performer: any) => ({
+                      value: performer._id,
+                      label: performer.fullDragName || performer.name || performer.firstName || performer.email,
                     })) || []),
                     {
                       value: "custom",
