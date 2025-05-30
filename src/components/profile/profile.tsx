@@ -25,12 +25,15 @@ const Profile = () => {
   const performerId = localStorage.getItem("userId") || "";
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdatePerformerProfileMutation();
-  const {
-    data: profileData,
-    isLoading,
-    refetch,
+
+    const {
+      data: profileData,
+      isLoading,
+      refetch,
+      // @ts-ignore
   } = useGetPerformerProfileQuery();
 
+  // @ts-ignore
   const { data: venues } = useGetAllVenuesQuery();
 
   const [logoUrl, setLogoUrl] = useState("");
@@ -133,6 +136,30 @@ const Profile = () => {
 
   useEffect(() => {
     if (profileData?.user) {
+      // Sort genres alphabetically by label for consistency
+      const genreOptions = [
+        { value: "the80s", label: "The 80's" },
+        { value: "tejano", label: "Tejano" },
+        { value: "rnb", label: "R&B" },
+        { value: "country", label: "Country" },
+        { value: "comedy", label: "Comedy" },
+        { value: "rock", label: "Rock" },
+        { value: "pop", label: "Pop" },
+        { value: "jazzBlues", label: "Jazz/Blues" },
+        { value: "disney", label: "Disney" },
+        { value: "other", label: "Other's" },
+        { value: "alternative", label: "Alternative (Emo, Goth, etc.)" },
+        { value: "comedy-mix", label: "Comedy Mix" },
+        { value: "musical-theater", label: "Musical Theater" },
+        { value: "the-70s", label: "The 70's" },
+        { value: "the-90s", label: "The 90's" },
+        { value: "the-2000s", label: "The 2000's" },
+      ].sort((a, b) => a.label.localeCompare(b.label));
+      const sortedGenres = (profileData.user.genres || [])
+        .map((g: any) => genreOptions.find(opt => opt.value === g))
+        .filter(Boolean)
+        // @ts-ignore
+        .sort((a, b) => a.label.localeCompare(b.label));
       const formData = {
         // displayName: profileData.user.name,
         dragName: profileData.user.fullDragName,
@@ -150,10 +177,7 @@ const Profile = () => {
           label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
         })),
         illusions: profileData.user.illusions || [],
-        musicGenres: profileData.user.genres?.map((g: any) => ({
-          value: g,
-          label: g.charAt(0).toUpperCase() + g.slice(1).replace("-", " "),
-        })),
+        musicGenres: sortedGenres,
         venues: profileData.user.venues?.map((v: any) => ({
           value: v,
           label: v.charAt(0).toUpperCase() + v.slice(1).replace("-", " "),
@@ -188,6 +212,10 @@ const Profile = () => {
   }, [profileData, reset, venues]);
 
   const onSubmit = async (data: any) => {
+    if (!logoUrl) {
+      toast.error("Profile image is required");
+      return;
+    }
     try {
       const transformedData = {
         // name: data.displayName,
@@ -787,97 +815,98 @@ const Profile = () => {
               name="musicGenres"
               control={control}
               rules={{ required: true }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isMulti
-                  isDisabled={!isEditing}
-                  closeMenuOnSelect={false}
-                  options={[
-                    { value: "the80s", label: "The 80's" },
-                    { value: "tejano", label: "Tejano" },
-                    { value: "rnb", label: "R&B" },
-                    { value: "country", label: "Country" },
-                    { value: "comedy", label: "Comedy" },
-                    { value: "rock", label: "Rock" },
-                    { value: "pop", label: "Pop" },
-                    { value: "jazzBlues", label: "Jazz/Blues" },
-                    { value: "disney", label: "Disney" },
-                    { value: "other", label: "Other's" },
-                    {
-                      value: "alternative",
-                      label: "Alternative (Emo, Goth, etc.)",
-                    },
-                    { value: "comedy-mix", label: "Comedy Mix" },
-                    { value: "musical-theater", label: "Musical Theater" },
-                    { value: "the-70s", label: "The 70's" },
-                    { value: "the-90s", label: "The 90's" },
-                    { value: "the-2000s", label: "The 2000's" },
-                  ]}
-                  className="w-full max-w-[782px]"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: "46px",
-                      background: "#0D0D0D",
-                      border: "1px solid #383838",
-                      borderRadius: "16px",
-                      boxShadow: "none",
-                      "&:hover": {
+              render={({ field }) => {
+                // Sort options alphabetically by label
+                const genreOptions = [
+                  { value: "the80s", label: "The 80's" },
+                  { value: "tejano", label: "Tejano" },
+                  { value: "rnb", label: "R&B" },
+                  { value: "country", label: "Country" },
+                  { value: "comedy", label: "Comedy" },
+                  { value: "rock", label: "Rock" },
+                  { value: "pop", label: "Pop" },
+                  { value: "jazzBlues", label: "Jazz/Blues" },
+                  { value: "disney", label: "Disney" },
+                  { value: "other", label: "Other's" },
+                  { value: "alternative", label: "Alternative (Emo, Goth, etc.)" },
+                  { value: "comedy-mix", label: "Comedy Mix" },
+                  { value: "musical-theater", label: "Musical Theater" },
+                  { value: "the-70s", label: "The 70's" },
+                  { value: "the-90s", label: "The 90's" },
+                  { value: "the-2000s", label: "The 2000's" },
+                ].sort((a, b) => a.label.localeCompare(b.label));
+                return (
+                  <Select
+                    {...field}
+                    isMulti
+                    isDisabled={!isEditing}
+                    closeMenuOnSelect={false}
+                    options={genreOptions}
+                    className="w-full max-w-[782px]"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: "46px",
+                        background: "#0D0D0D",
                         border: "1px solid #383838",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "#1D1D1D",
-                      border: "1px solid #383838",
-                      borderRadius: "4px",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      background: state.isFocused ? "#383838" : "#1D1D1D",
-                      color: "#fff",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      "&::before": {
-                        content: '""',
-                        display: "block",
-                        width: "16px",
-                        height: "16px",
-                        border: "2px solid #fff",
-                        borderRadius: "50%",
-                        backgroundColor: state.isSelected
-                          ? "#FF00A2"
-                          : "transparent",
-                      },
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      background: "#383838",
-                      borderRadius: "4px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "#fff",
-                      ":hover": {
-                        background: "#4a4a4a",
-                        borderRadius: "0 4px 4px 0",
-                      },
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                  }}
-                  placeholder="Select music genres"
-                />
-              )}
+                        borderRadius: "16px",
+                        boxShadow: "none",
+                        "&:hover": {
+                          border: "1px solid #383838",
+                        },
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        background: "#1D1D1D",
+                        border: "1px solid #383838",
+                        borderRadius: "4px",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isFocused ? "#383838" : "#1D1D1D",
+                        color: "#fff",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        "&::before": {
+                          content: '""',
+                          display: "block",
+                          width: "16px",
+                          height: "16px",
+                          border: "2px solid #fff",
+                          borderRadius: "50%",
+                          backgroundColor: state.isSelected
+                            ? "#FF00A2"
+                            : "transparent",
+                        },
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: "#383838",
+                        borderRadius: "4px",
+                      }),
+                      multiValueLabel: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                      multiValueRemove: (base) => ({
+                        ...base,
+                        color: "#fff",
+                        ":hover": {
+                          background: "#4a4a4a",
+                          borderRadius: "0 4px 4px 0",
+                        },
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                    }}
+                    placeholder="Select music genres"
+                  />
+                );
+              }}
             />
           </div>
 
