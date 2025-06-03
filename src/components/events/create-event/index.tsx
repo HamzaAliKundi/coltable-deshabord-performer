@@ -11,6 +11,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { eventOptions } from "../../../utils/create-event/dropDownData";
 import CustomSelect from "../../../utils/CustomSelect";
 import { Calendar, Clock } from "lucide-react";
+import { useGetAllPerformersQuery } from "../../../apis/profile";
+import Select from "react-select";
 
 interface EventFormData {
   title: string;
@@ -24,6 +26,7 @@ interface EventFormData {
   isPrivate: boolean;
   logo: string;
   eventLocation: string;
+  performers?: Array<{ value: string; label: string }>;
 }
 
 const CreateEvent = () => {
@@ -58,6 +61,7 @@ const CreateEvent = () => {
     limit: 1000,
     page: 1,
   });
+  const { data: performers } = useGetAllPerformersQuery();
 
   const handleLogoUpload = async () => {
     const input = document.createElement("input");
@@ -157,6 +161,12 @@ const CreateEvent = () => {
         description: event.description,
         isPrivate: event.isPrivate,
         eventLocation: event.address,
+        performers: event.performers
+          ? event.performers.map((p: any) => ({
+              value: p._id || p.value || p,
+              label: p.fullDragName || p.name || p.firstName || p.email || p.label || p,
+            }))
+          : [],
       });
 
       if (eventResponse?.event?.image) {
@@ -174,6 +184,7 @@ const CreateEvent = () => {
         description: "",
         isPrivate: false,
         eventLocation: "",
+        performers: [],
       });
     }
   }, [eventResponse, id, reset]);
@@ -204,7 +215,10 @@ const CreateEvent = () => {
         image: logoUrl,
         address: data.eventLocation,
         isPrivate: data.isPrivate,
+        performerList: data.performers ? data.performers.map((p) => p.value) : [],
       };
+
+      if (eventData.performers) delete eventData.performers;
 
       if (id) {
         await updateEvent({ id, eventData }).unwrap();
@@ -285,7 +299,6 @@ const CreateEvent = () => {
             <Controller
               name="type"
               control={control}
-              rules={{ required: "Event type is required" }}
               render={({ field }) => (
                 <CustomSelect
                   {...field}
@@ -398,6 +411,97 @@ const CreateEvent = () => {
             )}
           </div>
         </div>
+
+         <div className="flex flex-col gap-2">
+          <label className="text-white font-space-grotesk text-sm md:text-base">
+            Select Performer(s)
+          </label>
+          <Controller
+            name="performers"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                isMulti
+                isDisabled={false}
+                closeMenuOnSelect={false}
+                options={
+                  performers?.map((performer: any) => ({
+                    value: performer._id,
+                    label:
+                      performer.fullDragName ||
+                      performer.name ||
+                      performer.firstName ||
+                      performer.email,
+                  })) || []
+                }
+                className="w-full max-w-[782px]"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: "46px",
+                    background: "#0D0D0D",
+                    border: "1px solid #383838",
+                    borderRadius: "16px",
+                    boxShadow: "none",
+                    "&:hover": {
+                      border: "1px solid #383838",
+                    },
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    background: "#1D1D1D",
+                    border: "1px solid #383838",
+                    borderRadius: "4px",
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    background: state.isFocused ? "#383838" : "#1D1D1D",
+                    color: "#fff",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    "&::before": {
+                      content: '""',
+                      display: "block",
+                      width: "16px",
+                      height: "16px",
+                      border: "2px solid #fff",
+                      borderRadius: "50%",
+                      backgroundColor: state.isSelected
+                        ? "#FF00A2"
+                        : "transparent",
+                    },
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    background: "#383838",
+                    borderRadius: "4px",
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "#fff",
+                    ":hover": {
+                      background: "#4a4a4a",
+                      borderRadius: "0 4px 4px 0",
+                    },
+                  }),
+                  input: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+                }}
+                placeholder="Select performers"
+              />
+            )}
+          />
+        </div>
+
 
         <div className="flex flex-col gap-2">
           <label className="text-white font-space-grotesk text-sm md:text-base">
