@@ -66,6 +66,22 @@ const EventsList: React.FC<EventsListProps> = ({
   >(null);
 
   const formatDate = (dateString: string) => {
+    let date = new Date(dateString);
+    // Handle midnight UTC case
+    if (
+      date.getUTCHours() === 0 &&
+      date.getUTCMinutes() === 0 &&
+      date.getUTCSeconds() === 0
+    ) {
+      const localDate = new Date(date);
+      const localDay = localDate.getDate();
+      const utcDay = date.getUTCDate();
+      if (localDay < utcDay) {
+        localDate.setDate(localDate.getDate() + 1);
+        date = localDate;
+      }
+    }
+
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "short",
@@ -73,11 +89,26 @@ const EventsList: React.FC<EventsListProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+    return date.toLocaleDateString("en-US", options);
   };
 
   const extractTime = (dateString: string) => {
-    const date = new Date(dateString);
+    let date = new Date(dateString);
+    // Handle midnight UTC case
+    if (
+      date.getUTCHours() === 0 &&
+      date.getUTCMinutes() === 0 &&
+      date.getUTCSeconds() === 0
+    ) {
+      const localDate = new Date(date);
+      const localDay = localDate.getDate();
+      const utcDay = date.getUTCDate();
+      if (localDay < utcDay) {
+        localDate.setDate(localDate.getDate() + 1);
+        date = localDate;
+      }
+    }
+
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
@@ -302,6 +333,7 @@ const EventsList: React.FC<EventsListProps> = ({
                   <button
                     onClick={() =>
                       navigate(
+                        // @ts-ignore
                         `/messages?eventId=${event._id}&recipientId=${event?.user?._id}&recipientName=${event?.user?.name}&recipientImage=${event?.user?.logo}&eventName=${event?.title}`
                       )
                     }
