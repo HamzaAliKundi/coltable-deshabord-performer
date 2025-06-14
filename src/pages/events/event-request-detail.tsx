@@ -24,6 +24,22 @@ const EventRequestDetail = () => {
   );
 
   const formatDate = (dateString: string) => {
+    let date = new Date(dateString);
+    // Handle midnight UTC case
+    if (
+      date.getUTCHours() === 0 &&
+      date.getUTCMinutes() === 0 &&
+      date.getUTCSeconds() === 0
+    ) {
+      const localDate = new Date(date);
+      const localDay = localDate.getDate();
+      const utcDay = date.getUTCDate();
+      if (localDay < utcDay) {
+        localDate.setDate(localDate.getDate() + 1);
+        date = localDate;
+      }
+    }
+
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "short",
@@ -31,24 +47,39 @@ const EventRequestDetail = () => {
       hour: "2-digit",
       minute: "2-digit",
     };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+    return date.toLocaleDateString("en-US", options);
   };
 
   const extractTime = (dateString: string) => {
-    const date = new Date(dateString);
+    let date = new Date(dateString);
+    // Handle midnight UTC case
+    if (
+      date.getUTCHours() === 0 &&
+      date.getUTCMinutes() === 0 &&
+      date.getUTCSeconds() === 0
+    ) {
+      const localDate = new Date(date);
+      const localDay = localDate.getDate();
+      const utcDay = date.getUTCDate();
+      if (localDay < utcDay) {
+        localDate.setDate(localDate.getDate() + 1);
+        date = localDate;
+      }
+    }
+
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
 
     hours = hours % 12;
     hours = hours ? hours : 12;
-    minutes = minutes < 10 ? "0" + minutes : minutes;
+    const minutesStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
 
-    return `${hours}:${minutes} ${ampm}`;
+    return `${hours}:${minutesStr} ${ampm}`;
   };
 
-  const formatEventType = (type: any) => {
-    const types = {
+  const formatEventType = (type: string) => {
+    const types: Record<string, string> = {
       "drag-show": "Drag Show",
       "drag-brunch": "Drag Brunch",
       "drag-bingo": "Drag Bingo",
