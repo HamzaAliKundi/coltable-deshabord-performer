@@ -13,10 +13,11 @@ const Footer = () => {
               height={70}
             />
             <div className="mt-6 md:mt-[90px] text-[15px] font-spaceGrotesk space-y-1">
-              <p className="flex items-center gap-1 lg:whitespace-nowrap">
-                <img src="/footer/location.png" />
-                2000 West Loop S, Suite 2200, Houston, TX 77027
-              </p>
+            <p className="flex items-center gap-1 lg:whitespace-nowrap">
+              <img src="/footer/location.png" />
+              2000 West Loop S, Suite 2200 <br />
+              Houston, TX 77027
+            </p>
               <p className="flex items-center gap-2">
                 <img src="/footer/email.png" />
                 info@dragspace.com
