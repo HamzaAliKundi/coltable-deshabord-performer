@@ -1266,7 +1266,7 @@ const Profile = () => {
           {/* Upload Logo */}
           <div className="w-full max-w-[782px] bg-black p-4">
             <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
-              Upload Logo
+              Profile Picture
             </h2>
             <p className="text-[#FF00A2] text-sm mb-2 font-['Space_Grotesk']">
               For best results, your profile picture should be 350x450px. Other sizes may not display as expected.
