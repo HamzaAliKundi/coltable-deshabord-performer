@@ -257,11 +257,15 @@ const EventRequestDetail = () => {
           </h3>
           <p className="text-white/90">
             <span className="font-medium">Description:</span>{" "}
-            <span dangerouslySetInnerHTML={{ __html: getEventsByVenuesById?.event?.description || "N/A" }} />
+            <span dangerouslySetInnerHTML={{ 
+              __html: (getEventsByVenuesById?.event?.description || "N/A").replace(/\n/g, '<br>') 
+            }} />
           </p>
           <p className="text-white/90">
             <span className="font-medium">Special Request For Performer:</span>{" "}
-            <span dangerouslySetInnerHTML={{ __html: getEventsByVenuesById?.event?.specialRequirements || "N/A" }} />
+            <span dangerouslySetInnerHTML={{ 
+              __html: (getEventsByVenuesById?.event?.specialRequirements || "N/A").replace(/\n/g, '<br>') 
+            }} />
           </p>
         </div>
       )}
