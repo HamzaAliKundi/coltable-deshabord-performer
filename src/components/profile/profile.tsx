@@ -160,7 +160,7 @@ const Profile = () => {
         { value: "pop", label: "Pop" },
         { value: "jazzBlues", label: "Jazz/Blues" },
         { value: "disney", label: "Disney" },
-        { value: "other", label: "Other's" },
+        { value: "other", label: "Other" },
         { value: "alternative", label: "Alternative (Emo, Goth, etc.)" },
         { value: "comedy-mix", label: "Comedy Mix" },
         { value: "musical-theater", label: "Musical Theater" },
@@ -168,11 +168,24 @@ const Profile = () => {
         { value: "the-90s", label: "The 90's" },
         { value: "the-2000s", label: "The 2000's" },
       ].sort((a, b) => a.label.localeCompare(b.label));
+      
       const sortedGenres = (profileData.user.genres || [])
-        .map((g: any) => genreOptions.find(opt => opt.value === g))
+        .map((g: any) => {
+          // First try to find in predefined options
+          const predefinedOption = genreOptions.find(opt => opt.value === g);
+          if (predefinedOption) {
+            return predefinedOption;
+          }
+          // If not found, it's a custom genre - create option for it
+          return {
+            value: g,
+            label: g.charAt(0).toUpperCase() + g.slice(1).replace(/-/g, ' ')
+          };
+        })
         .filter(Boolean)
         // @ts-ignore
         .sort((a, b) => a.label.localeCompare(b.label));
+        
       const formData = {
         // displayName: profileData.user.name,
         dragName: profileData.user.fullDragName,
@@ -185,10 +198,27 @@ const Profile = () => {
         dragFamilyAssociation: profileData.user.dragFamilyAssociation || [],
         aesthetic: profileData.user.aesthetic,
         competitions: profileData.user.awards || [],
-        performances: profileData.user.dragPerformances?.map((p: any) => ({
-          value: p,
-          label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
-        })),
+        performances: profileData.user.dragPerformances?.map((p: any) => {
+          // Check if it's a predefined performance type
+          const predefinedPerformances = [
+            "dance", "burlesque", "campy", "comedy", "dance-twirl", 
+            "drag-bingo", "drag-karaoke", "drag-trivia", "hosting", 
+            "lip-sync", "live-singing"
+          ];
+          
+          if (predefinedPerformances.includes(p)) {
+            return {
+              value: p,
+              label: p.charAt(0).toUpperCase() + p.slice(1).replace("-", " "),
+            };
+          } else {
+            // It's a custom performance - format it properly
+            return {
+              value: p,
+              label: p.charAt(0).toUpperCase() + p.slice(1).replace(/-/g, ' '),
+            };
+          }
+        }),
         illusions: profileData.user.illusions || [],
         musicGenres: sortedGenres,
         venues: profileData.user.venues?.map((venueId: any) => {
@@ -671,88 +701,115 @@ const Profile = () => {
               control={control}
               rules={{ required: true, minLength: 3 }}
               render={({ field }) => (
-                <Select
-                  {...field}
-                  isMulti
-                  isDisabled={!isEditing}
-                  closeMenuOnSelect={false}
-                  options={[
-                    { value: "dance", label: "Dance" },
-                    { value: "burlesque", label: "Burlesque" },
-                    { value: "campy", label: "Campy" },
-                    { value: "comedy", label: "Comedy" },
-                    { value: "dance-twirl", label: "Dance/Twirl" },
-                    { value: "drag-bingo", label: "Drag Bingo" },
-                    { value: "drag-karaoke", label: "Drag Karaoke" },
-                    { value: "drag-trivia", label: "Drag Trivia" },
-                    { value: "hosting", label: "Hosting" },
-                    { value: "lip-sync", label: "Lip Sync" },
-                    { value: "live-singing", label: "Live Singing" },
-                    { value: "other", label: "Other" },
-                  ]}
-                  className="w-full max-w-[782px]"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      minHeight: "46px",
-                      background: "#0D0D0D",
-                      border: "1px solid #383838",
-                      borderRadius: "16px",
-                      boxShadow: "none",
-                      "&:hover": {
+                <div className="w-full max-w-[782px]">
+                  <Select
+                    {...field}
+                    isMulti
+                    isDisabled={!isEditing}
+                    closeMenuOnSelect={false}
+                    options={[
+                      { value: "dance", label: "Dance" },
+                      { value: "burlesque", label: "Burlesque" },
+                      { value: "campy", label: "Campy" },
+                      { value: "comedy", label: "Comedy" },
+                      { value: "dance-twirl", label: "Dance/Twirl" },
+                      { value: "drag-bingo", label: "Drag Bingo" },
+                      { value: "drag-karaoke", label: "Drag Karaoke" },
+                      { value: "drag-trivia", label: "Drag Trivia" },
+                      { value: "hosting", label: "Hosting" },
+                      { value: "lip-sync", label: "Lip Sync" },
+                      { value: "live-singing", label: "Live Singing" },
+                      { value: "other", label: "Other", isCustom: true },
+                    ]}
+                    className="w-full max-w-[782px]"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: "46px",
+                        background: "#0D0D0D",
                         border: "1px solid #383838",
-                      },
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      background: "#1D1D1D",
-                      border: "1px solid #383838",
-                      borderRadius: "4px",
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      background: state.isFocused ? "#383838" : "#1D1D1D",
-                      color: "#fff",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      "&::before": {
-                        content: '""',
-                        display: "block",
-                        width: "16px",
-                        height: "16px",
-                        border: "2px solid #fff",
-                        borderRadius: "50%",
-                        backgroundColor: state.isSelected
-                          ? "#FF00A2"
-                          : "transparent",
-                      },
-                    }),
-                    multiValue: (base) => ({
-                      ...base,
-                      background: "#383838",
-                      borderRadius: "4px",
-                    }),
-                    multiValueLabel: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                    multiValueRemove: (base) => ({
-                      ...base,
-                      color: "#fff",
-                      ":hover": {
-                        background: "#4a4a4a",
-                        borderRadius: "0 4px 4px 0",
-                      },
-                    }),
-                    input: (base) => ({
-                      ...base,
-                      color: "#fff",
-                    }),
-                  }}
-                  placeholder="Select performances"
-                />
+                        borderRadius: "16px",
+                        boxShadow: "none",
+                        "&:hover": {
+                          border: "1px solid #383838",
+                        },
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        background: "#1D1D1D",
+                        border: "1px solid #383838",
+                        borderRadius: "4px",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isFocused ? "#383838" : "#1D1D1D",
+                        color: "#fff",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        "&::before": {
+                          content: '""',
+                          display: "block",
+                          width: "16px",
+                          height: "16px",
+                          border: "2px solid #fff",
+                          borderRadius: "50%",
+                          backgroundColor: state.isSelected
+                            ? "#FF00A2"
+                            : "transparent",
+                        },
+                      }),
+                      multiValue: (base) => ({
+                        ...base,
+                        background: "#383838",
+                        borderRadius: "4px",
+                      }),
+                      multiValueLabel: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                      multiValueRemove: (base) => ({
+                        ...base,
+                        color: "#fff",
+                        ":hover": {
+                          background: "#4a4a4a",
+                          borderRadius: "0 4px 4px 0",
+                        },
+                      }),
+                      input: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                    }}
+                    placeholder="Select performances"
+                    onChange={(selectedOptions) => {
+                      const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                      if (lastOption?.isCustom) {
+                        const customValue = prompt("Enter custom performance type:");
+                        if (customValue?.trim()) {
+                          const newPerformance = {
+                            value: customValue.toLowerCase().replace(/\s+/g, "-"),
+                            label: customValue.trim(),
+                          };
+                          const currentPerformances = Array.isArray(field.value)
+                            ? [...field.value]
+                            : [];
+                          if (
+                            !currentPerformances.some(
+                              (p) =>
+                                (typeof p === "object" ? p.label : p) === customValue.trim()
+                            )
+                          ) {
+                            field.onChange([...currentPerformances, newPerformance]);
+                          }
+                        }
+                        return;
+                      }
+                      field.onChange(selectedOptions);
+                    }}
+                  />
+                </div>
               )}
             />
           </div>
@@ -832,7 +889,7 @@ const Profile = () => {
               control={control}
               rules={{ required: true }}
               render={({ field }) => {
-                // Sort options alphabetically by label
+                // Sort options alphabetically by label, but keep "Other" at the end
                 const genreOptions = [
                   { value: "the80s", label: "The 80's" },
                   { value: "tejano", label: "Tejano" },
@@ -843,7 +900,6 @@ const Profile = () => {
                   { value: "pop", label: "Pop" },
                   { value: "jazzBlues", label: "Jazz/Blues" },
                   { value: "disney", label: "Disney" },
-                  { value: "other", label: "Other's" },
                   { value: "alternative", label: "Alternative (Emo, Goth, etc.)" },
                   { value: "comedy-mix", label: "Comedy Mix" },
                   { value: "musical-theater", label: "Musical Theater" },
@@ -851,76 +907,108 @@ const Profile = () => {
                   { value: "the-90s", label: "The 90's" },
                   { value: "the-2000s", label: "The 2000's" },
                 ].sort((a, b) => a.label.localeCompare(b.label));
+                
+                // Add "Other" at the end
+                // @ts-ignore
+                genreOptions.push({ value: "other", label: "Other", isCustom: true });
+                
                 return (
-                  <Select
-                    {...field}
-                    isMulti
-                    isDisabled={!isEditing}
-                    closeMenuOnSelect={false}
-                    options={genreOptions}
-                    className="w-full max-w-[782px]"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: "46px",
-                        background: "#0D0D0D",
-                        border: "1px solid #383838",
-                        borderRadius: "16px",
-                        boxShadow: "none",
-                        "&:hover": {
+                  <div className="w-full max-w-[782px]">
+                    <Select
+                      {...field}
+                      isMulti
+                      isDisabled={!isEditing}
+                      closeMenuOnSelect={false}
+                      options={genreOptions}
+                      className="w-full max-w-[782px]"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: "46px",
+                          background: "#0D0D0D",
                           border: "1px solid #383838",
-                        },
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        background: "#1D1D1D",
-                        border: "1px solid #383838",
-                        borderRadius: "4px",
-                      }),
-                      option: (base, state) => ({
-                        ...base,
-                        background: state.isFocused ? "#383838" : "#1D1D1D",
-                        color: "#fff",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        "&::before": {
-                          content: '""',
-                          display: "block",
-                          width: "16px",
-                          height: "16px",
-                          border: "2px solid #fff",
-                          borderRadius: "50%",
-                          backgroundColor: state.isSelected
-                            ? "#FF00A2"
-                            : "transparent",
-                        },
-                      }),
-                      multiValue: (base) => ({
-                        ...base,
-                        background: "#383838",
-                        borderRadius: "4px",
-                      }),
-                      multiValueLabel: (base) => ({
-                        ...base,
-                        color: "#fff",
-                      }),
-                      multiValueRemove: (base) => ({
-                        ...base,
-                        color: "#fff",
-                        ":hover": {
-                          background: "#4a4a4a",
-                          borderRadius: "0 4px 4px 0",
-                        },
-                      }),
-                      input: (base) => ({
-                        ...base,
-                        color: "#fff",
-                      }),
-                    }}
-                    placeholder="Select music genres"
-                  />
+                          borderRadius: "16px",
+                          boxShadow: "none",
+                          "&:hover": {
+                            border: "1px solid #383838",
+                          },
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          background: "#1D1D1D",
+                          border: "1px solid #383838",
+                          borderRadius: "4px",
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          background: state.isFocused ? "#383838" : "#1D1D1D",
+                          color: "#fff",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          "&::before": {
+                            content: '""',
+                            display: "block",
+                            width: "16px",
+                            height: "16px",
+                            border: "2px solid #fff",
+                            borderRadius: "50%",
+                            backgroundColor: state.isSelected
+                              ? "#FF00A2"
+                              : "transparent",
+                          },
+                        }),
+                        multiValue: (base) => ({
+                          ...base,
+                          background: "#383838",
+                          borderRadius: "4px",
+                        }),
+                        multiValueLabel: (base) => ({
+                          ...base,
+                          color: "#fff",
+                        }),
+                        multiValueRemove: (base) => ({
+                          ...base,
+                          color: "#fff",
+                          ":hover": {
+                            background: "#4a4a4a",
+                            borderRadius: "0 4px 4px 0",
+                          },
+                        }),
+                        input: (base) => ({
+                          ...base,
+                          color: "#fff",
+                        }),
+                      }}
+                      placeholder="Select music genres"
+                      onChange={(selectedOptions) => {
+                        const lastOption = selectedOptions?.[selectedOptions.length - 1];
+                        if (lastOption?.isCustom) {
+                          const customValue = prompt("Enter custom music genre:");
+                          if (customValue?.trim()) {
+                            const newGenre = {
+                              value: customValue.toLowerCase().replace(/\s+/g, "-"),
+                              label: customValue.trim(),
+                            };
+                            const currentGenres = Array.isArray(field.value)
+                              ? [...field.value]
+                              : [];
+                            if (
+                              !currentGenres.some(
+                                (g) =>
+                                  (typeof g === "object" ? g.label : g) === customValue.trim()
+                              )
+                            ) {
+                              field.onChange([...currentGenres, newGenre]);
+                            }
+                          }
+                          return;
+                        }
+                        field.onChange(selectedOptions);
+                      }}
+                    />
+                  </div>
                 );
               }}
             />
