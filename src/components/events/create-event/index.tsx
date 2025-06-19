@@ -16,7 +16,7 @@ import Select from "react-select";
 
 interface EventFormData {
   title: string;
-  host: string;
+  host: Array<{ value: string; label: string; isCustom?: boolean }>;
   type: string;
   theme: string;
   startDate: string;
@@ -26,7 +26,7 @@ interface EventFormData {
   isPrivate: boolean;
   logo: string;
   eventLocation: string;
-  performers?: Array<{ value: string; label: string }>;
+  performers?: Array<{ value: string; label: string; isCustom?: boolean }>;
 }
 
 const CreateEvent = () => {
@@ -61,7 +61,7 @@ const CreateEvent = () => {
     limit: 1000,
     page: 1,
   });
-  const { data: performers } = useGetAllPerformersQuery();
+  const { data: performers } = useGetAllPerformersQuery({});
 
   const handleLogoUpload = async () => {
     const input = document.createElement("input");
@@ -149,9 +149,42 @@ const CreateEvent = () => {
   useEffect(() => {
     if (id && eventResponse) {
       const event = eventResponse?.event;
+      
+      // Helper function to process hosts/performers
+      const processHostsOrPerformers = (items: any[]) => {
+        if (!Array.isArray(items)) return [];
+        
+        return items.map((item) => {
+          // If item is already an object with _id, it's a database entry
+          if (item && typeof item === 'object' && item._id) {
+            return {
+              value: item._id,
+              label: item.fullDragName || item.name || item.firstName || item.email || item.label || item._id,
+            };
+          }
+          // If item is a string, it could be either an ID or a custom name
+          if (typeof item === 'string') {
+            // Check if it looks like a MongoDB ObjectId
+            if (item.length === 24 && /^[0-9a-fA-F]{24}$/.test(item)) {
+              // It's an ID, but we don't have the full object, so we'll use the ID as both value and label
+              return { value: item, label: item };
+            } else {
+              // It's a custom name
+              return { value: item.toLowerCase().replace(/\s+/g, "-"), label: item };
+            }
+          }
+          // Fallback
+          return { value: item, label: item };
+        });
+      };
+
       reset({
         title: event.title,
-        host: event.host,
+        host: Array.isArray(event.host) 
+          ? processHostsOrPerformers(event.host)
+          : event.host 
+            ? [{ value: event.host, label: event.host }]
+            : [],
         type: event.type,
         startDate: event.startDate
           ? new Date(event.startDate).toISOString().split("T")[0]
@@ -162,10 +195,7 @@ const CreateEvent = () => {
         isPrivate: event.isPrivate,
         eventLocation: event.address,
         performers: event.performers
-          ? event.performers.map((p: any) => ({
-              value: p._id || p.value || p,
-              label: p.fullDragName || p.name || p.firstName || p.email || p.label || p,
-            }))
+          ? processHostsOrPerformers(event.performers)
           : [],
       });
 
@@ -176,7 +206,7 @@ const CreateEvent = () => {
     } else if (!id) {
       reset({
         title: "",
-        host: "",
+        host: [],
         type: "",
         startDate: new Date().toISOString().split("T")[0],
         startTime: "19:00",
@@ -207,6 +237,10 @@ const CreateEvent = () => {
       startTime.setHours(startHours, startMinutes, 0, 0);
       endTime.setHours(endHours, endMinutes, 0, 0);
 
+      // Always send names (labels) instead of IDs
+      const processedHosts = data.host ? data.host.map((h) => h.label) : [];
+      const processedPerformers = data.performers ? data.performers.map((p) => p.label) : [];
+
       const eventData = {
         ...data,
         startDate: startDate.toISOString(),
@@ -215,7 +249,8 @@ const CreateEvent = () => {
         image: logoUrl,
         address: data.eventLocation,
         isPrivate: data.isPrivate,
-        performerList: data.performers ? data.performers.map((p) => p.value) : [],
+        host: processedHosts,
+        performerList: processedPerformers,
       };
 
       if (eventData.performers) delete eventData.performers;
@@ -279,14 +314,127 @@ const CreateEvent = () => {
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Host*
             </label>
-            <input
-              {...register("host", { required: "Event host is required" })}
-              type="text"
-              placeholder="Event Host Name..."
-              className="w-full h-10 bg-[#0D0D0D] rounded-lg px-3 text-white font-space-grotesk text-base placeholder:text-[#878787] focus:outline-none focus:ring-1 focus:ring-pink-500"
+            <Controller
+              name="host"
+              control={control}
+              rules={{ required: "Event host is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  isMulti
+                  isDisabled={false}
+                  closeMenuOnSelect={false}
+                  options={[
+                    ...(performers?.map((performer: any) => ({
+                      value: performer._id,
+                      label:
+                        performer.fullDragName ||
+                        performer.name ||
+                        performer.firstName ||
+                        performer.email,
+                    })) || []),
+                    {
+                      value: "custom",
+                      label: "+ Add Other Host",
+                      isCustom: true,
+                    },
+                  ]}
+                  className="w-full max-w-[782px]"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: "46px",
+                      background: "#0D0D0D",
+                      border: "1px solid #383838",
+                      borderRadius: "16px",
+                      boxShadow: "none",
+                      "&:hover": {
+                        border: "1px solid #383838",
+                      },
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      background: "#1D1D1D",
+                      border: "1px solid #383838",
+                      borderRadius: "4px",
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      background: state.isFocused ? "#383838" : "#1D1D1D",
+                      color: "#fff",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      "&::before": {
+                        content: '""',
+                        display: "block",
+                        width: "16px",
+                        height: "16px",
+                        border: "2px solid #fff",
+                        borderRadius: "50%",
+                        backgroundColor: state.isSelected
+                          ? "#FF00A2"
+                          : "transparent",
+                      },
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      background: "#383838",
+                      borderRadius: "4px",
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: "#fff",
+                      ":hover": {
+                        background: "#4a4a4a",
+                        borderRadius: "0 4px 4px 0",
+                      },
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+                  }}
+                  placeholder="Select hosts"
+                  onChange={(selectedOptions) => {
+                    const lastOption =
+                      selectedOptions?.[selectedOptions.length - 1];
+                    if (lastOption?.isCustom) {
+                      const customValue = prompt("Enter custom host name:");
+                      if (customValue?.trim()) {
+                        const newHost = {
+                          value: customValue.toLowerCase().replace(/\s+/g, "-"),
+                          label: customValue.trim(),
+                        };
+                        const currentHosts = Array.isArray(field.value)
+                          ? [...field.value]
+                          : [];
+                        if (
+                          !currentHosts.some(
+                            (h) =>
+                              (typeof h === "object" ? h.label : h) ===
+                              customValue.trim()
+                          )
+                        ) {
+                          field.onChange([...currentHosts, newHost]);
+                        }
+                      }
+                      return;
+                    }
+                    field.onChange(selectedOptions);
+                  }}
+                />
+              )}
             />
             {errors.host && (
-              <span className="text-red-500">{errors.host.message}</span>
+              <span className="text-red-500 text-sm">
+                {errors.host.message}
+              </span>
             )}
           </div>
         </div>
@@ -425,16 +573,21 @@ const CreateEvent = () => {
                 isMulti
                 isDisabled={false}
                 closeMenuOnSelect={false}
-                options={
-                  performers?.map((performer: any) => ({
+                options={[
+                  ...(performers?.map((performer: any) => ({
                     value: performer._id,
                     label:
                       performer.fullDragName ||
                       performer.name ||
                       performer.firstName ||
                       performer.email,
-                  })) || []
-                }
+                  })) || []),
+                  {
+                    value: "custom",
+                    label: "+ Add Other Performer",
+                    isCustom: true,
+                  },
+                ]}
                 className="w-full max-w-[782px]"
                 styles={{
                   control: (base) => ({
@@ -497,6 +650,33 @@ const CreateEvent = () => {
                   }),
                 }}
                 placeholder="Select performers"
+                onChange={(selectedOptions) => {
+                  const lastOption =
+                    selectedOptions?.[selectedOptions.length - 1];
+                  if (lastOption?.isCustom) {
+                    const customValue = prompt("Enter custom performer name:");
+                    if (customValue?.trim()) {
+                      const newPerformer = {
+                        value: customValue.toLowerCase().replace(/\s+/g, "-"),
+                        label: customValue.trim(),
+                      };
+                      const currentPerformers = Array.isArray(field.value)
+                        ? [...field.value]
+                        : [];
+                      if (
+                        !currentPerformers.some(
+                          (p) =>
+                            (typeof p === "object" ? p.label : p) ===
+                            customValue.trim()
+                        )
+                      ) {
+                        field.onChange([...currentPerformers, newPerformer]);
+                      }
+                    }
+                    return;
+                  }
+                  field.onChange(selectedOptions);
+                }}
               />
             )}
           />
