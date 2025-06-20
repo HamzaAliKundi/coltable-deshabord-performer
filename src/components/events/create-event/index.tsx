@@ -237,9 +237,9 @@ const CreateEvent = () => {
       startTime.setHours(startHours, startMinutes, 0, 0);
       endTime.setHours(endHours, endMinutes, 0, 0);
 
-      // Always send names (labels) instead of IDs
+      // Send names (labels) for hosts, but IDs (values) for performers
       const processedHosts = data.host ? data.host.map((h) => h.label) : [];
-      const processedPerformers = data.performers ? data.performers.map((p) => p.label) : [];
+      const processedPerformers = data.performers ? data.performers.map((p) => p.value) : [];
 
       const eventData = {
         ...data,
