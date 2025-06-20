@@ -194,8 +194,8 @@ const CreateEvent = () => {
         description: event.description,
         isPrivate: event.isPrivate,
         eventLocation: event.address,
-        performers: event.performers
-          ? processHostsOrPerformers(event.performers)
+        performers: event.performersList
+          ? processHostsOrPerformers(event.performersList)
           : [],
       });
 
@@ -250,7 +250,7 @@ const CreateEvent = () => {
         address: data.eventLocation,
         isPrivate: data.isPrivate,
         host: processedHosts,
-        performerList: processedPerformers,
+        performersList: processedPerformers,
       };
 
       if (eventData.performers) delete eventData.performers;
