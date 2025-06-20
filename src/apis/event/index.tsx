@@ -54,6 +54,7 @@ export const eventsApi = createApi({
         url: `/api/performer/event/get-single-event/${eventId}`,
         method: "GET",
       }),
+      keepUnusedDataFor: 0,
     }),
     deleteEvent: builder.mutation({
       query: (eventId: string) => ({
