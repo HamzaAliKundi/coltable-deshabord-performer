@@ -124,9 +124,15 @@ const Settings = () => {
       <div>
         <h2 className="font-space-grotesk mt-12 text-base text-white font-normal leading-none">Support & Feedback</h2>
         <div className="flex flex-col gap-1 mt-8 ml-8">
-          <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Report a Bug</a>
-          <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Feature Requests</a>
-          <a href="#" className="font-space-grotesk text-base text-[#A4A4A4]">Support & Feedback</a>
+          <div className="font-space-grotesk text-base text-[#A4A4A4]">
+            Report a Bug - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+          </div>
+          <div className="font-space-grotesk text-base text-[#A4A4A4]">
+            Feature Requests - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+          </div>
+          <div className="font-space-grotesk text-base text-[#A4A4A4]">
+            Support & Feedback - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+          </div>
         </div>
       </div>
 
