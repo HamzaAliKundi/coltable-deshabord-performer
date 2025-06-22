@@ -295,7 +295,7 @@ const CreateEvent = () => {
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
               Event Title*
@@ -312,7 +312,8 @@ const CreateEvent = () => {
           </div>
           <div className="flex flex-col gap-2">
             <label className="text-white font-space-grotesk text-sm md:text-base">
-              Event Host*
+              Event Host* (If name not listed, select + Add Other Host and type
+              in their name)
             </label>
             <Controller
               name="host"
@@ -343,7 +344,7 @@ const CreateEvent = () => {
                   styles={{
                     control: (base) => ({
                       ...base,
-                      minHeight: "46px",
+                      minHeight: "40px",
                       background: "#0D0D0D",
                       border: "1px solid #383838",
                       borderRadius: "16px",
