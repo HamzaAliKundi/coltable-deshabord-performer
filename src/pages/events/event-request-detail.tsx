@@ -134,7 +134,9 @@ const EventRequestDetail = () => {
           <ul className="text-white/90 space-y-2">
             <li>
               <span className="font-medium">Host:</span>{" "}
-              {getEventsByVenuesById?.event?.host}
+              {Array.isArray(getEventsByVenuesById?.event?.host) 
+                ? getEventsByVenuesById?.event?.host.join(", ")
+                : getEventsByVenuesById?.event?.host}
             </li>
             <li>
               <span className="font-medium">Type:</span>{" "}
