@@ -447,7 +447,7 @@ const Profile = () => {
                   }
                   options={pronounOptions}
                   isDisabled={!isEditing}
-                  placeholder="Select pronouns"
+                  placeholder="Select Performer Type"
                 />
               )}
             />
