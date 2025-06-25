@@ -35,6 +35,32 @@ const Settings = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
+  const handleEmailClick = (type: string) => {
+    const email = 'support@dragspace.com'
+    const subjects = {
+      bug: 'Bug Report',
+      feature: 'Feature Request',
+      support: 'Support & Feedback'
+    }
+    
+    const subject = subjects[type as keyof typeof subjects]
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}`
+    
+    // Try to open email client
+    const link = document.createElement('a')
+    link.href = mailtoLink
+    link.click()
+    
+    // Fallback: copy email to clipboard after a short delay
+    setTimeout(() => {
+      navigator.clipboard.writeText(email).then(() => {
+        toast.success(`Email address copied to clipboard! Please email us at ${email} with subject: ${subject}`)
+      }).catch(() => {
+        toast.error(`Please email us at ${email} with subject: ${subject}`)
+      })
+    }, 1000)
+  }
+
   return (
     <div className="p-8 mb-12">
       <div className="mb-8">
@@ -125,13 +151,28 @@ const Settings = () => {
         <h2 className="font-space-grotesk mt-12 text-base text-white font-normal leading-none">Support & Feedback</h2>
         <div className="flex flex-col gap-1 mt-8 ml-8">
           <div className="font-space-grotesk text-base text-[#A4A4A4]">
-            Report a Bug - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+            <a 
+              onClick={() => handleEmailClick('bug')}
+              className="text-[#FF00A2] hover:underline cursor-pointer"
+            >
+              Report a Bug
+            </a>
           </div>
           <div className="font-space-grotesk text-base text-[#A4A4A4]">
-            Feature Requests - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+            <a 
+              onClick={() => handleEmailClick('feature')}
+              className="text-[#FF00A2] hover:underline cursor-pointer"
+            >
+              Feature Requests
+            </a>
           </div>
           <div className="font-space-grotesk text-base text-[#A4A4A4]">
-            Support & Feedback - Email: <span className="text-[#FF00A2]">colt.ables@gmail.com</span>
+            <a 
+              onClick={() => handleEmailClick('support')}
+              className="text-[#FF00A2] hover:underline cursor-pointer"
+            >
+              Support & Feedback
+            </a>
           </div>
         </div>
       </div>
