@@ -327,7 +327,7 @@ const Profile = () => {
 
   return (
     <>
-      {!profileData?.user?.isProfileCompleted && (
+      
         <div className="p-4 md:px-8 pb-4 max-w-[782px]">
           <div className="w-full max-w-[782px] bg-[#FF00A2] text-white p-4 rounded-[16px]">
             <div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
-      )}
+      
       <div
         className="flex justify-end pt-16 max-w-[850px] text-white font-['Space_Grotesk'] font-normal text-[16px] leading-[100%] tracking-[0%] align-middle uppercase items-center gap-2 cursor-pointer"
         onClick={() => setIsEditing(!isEditing)}
