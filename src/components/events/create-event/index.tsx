@@ -574,21 +574,14 @@ const CreateEvent = () => {
                 isMulti
                 isDisabled={false}
                 closeMenuOnSelect={false}
-                options={[
-                  ...(performers?.map((performer: any) => ({
-                    value: performer._id,
-                    label:
-                      performer.fullDragName ||
-                      performer.name ||
-                      performer.firstName ||
-                      performer.email,
-                  })) || []),
-                  {
-                    value: "custom",
-                    label: "+ Add Other Performer",
-                    isCustom: true,
-                  },
-                ]}
+                options={performers?.map((performer: any) => ({
+                  value: performer._id,
+                  label:
+                    performer.fullDragName ||
+                    performer.name ||
+                    performer.firstName ||
+                    performer.email,
+                })) || []}
                 className="w-full max-w-[782px]"
                 styles={{
                   control: (base) => ({
@@ -652,30 +645,6 @@ const CreateEvent = () => {
                 }}
                 placeholder="Select performers"
                 onChange={(selectedOptions) => {
-                  const lastOption =
-                    selectedOptions?.[selectedOptions.length - 1];
-                  if (lastOption?.isCustom) {
-                    const customValue = prompt("Enter custom performer name:");
-                    if (customValue?.trim()) {
-                      const newPerformer = {
-                        value: customValue.toLowerCase().replace(/\s+/g, "-"),
-                        label: customValue.trim(),
-                      };
-                      const currentPerformers = Array.isArray(field.value)
-                        ? [...field.value]
-                        : [];
-                      if (
-                        !currentPerformers.some(
-                          (p) =>
-                            (typeof p === "object" ? p.label : p) ===
-                            customValue.trim()
-                        )
-                      ) {
-                        field.onChange([...currentPerformers, newPerformer]);
-                      }
-                    }
-                    return;
-                  }
                   field.onChange(selectedOptions);
                 }}
               />
