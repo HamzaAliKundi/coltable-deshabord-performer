@@ -563,7 +563,7 @@ const CreateEvent = () => {
 
          <div className="flex flex-col gap-2">
           <label className="text-white font-space-grotesk text-sm md:text-base">
-            Select Performer(s)
+          Select Performers* (Also include the host/hostess name in the performer selection)
           </label>
           <Controller
             name="performers"
