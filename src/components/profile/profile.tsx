@@ -891,21 +891,21 @@ const Profile = () => {
               render={({ field }) => {
                 // Sort options alphabetically by label, but keep "Other" at the end
                 const genreOptions = [
-                  { value: "the80s", label: "The 80's" },
-                  { value: "tejano", label: "Tejano" },
-                  { value: "rnb", label: "R&B" },
-                  { value: "country", label: "Country" },
-                  { value: "comedy", label: "Comedy" },
-                  { value: "rock", label: "Rock" },
-                  { value: "pop", label: "Pop" },
-                  { value: "jazzBlues", label: "Jazz/Blues" },
-                  { value: "disney", label: "Disney" },
-                  { value: "alternative", label: "Alternative (Emo, Goth, etc.)" },
-                  { value: "comedy-mix", label: "Comedy Mix" },
-                  { value: "musical-theater", label: "Musical Theater" },
-                  { value: "the-70s", label: "The 70's" },
-                  { value: "the-90s", label: "The 90's" },
-                  { value: "the-2000s", label: "The 2000's" },
+                  { value: "The 80's", label: "The 80's" },
+                  { value: "Tejano", label: "Tejano" },
+                  { value: "R&B", label: "R&B" },
+                  { value: "Country", label: "Country" },
+                  { value: "Comedy", label: "Comedy" },
+                  { value: "Rock", label: "Rock" },
+                  { value: "Pop", label: "Pop" },
+                  { value: "Jazz/Blues", label: "Jazz/Blues" },
+                  { value: "Disney", label: "Disney" },
+                  { value: "Alternative (Emo, Goth, etc.)", label: "Alternative (Emo, Goth, etc.)" },
+                  { value: "Comedy Mix", label: "Comedy Mix" },
+                  { value: "Musical Theater", label: "Musical Theater" },
+                  { value: "The 70's", label: "The 70's" },
+                  { value: "The 90's", label: "The 90's" },
+                  { value: "The 2000's", label: "The 2000's" },
                 ].sort((a, b) => a.label.localeCompare(b.label));
                 
                 // Add "Other" at the end
@@ -988,8 +988,8 @@ const Profile = () => {
                           const customValue = prompt("Enter custom music genre:");
                           if (customValue?.trim()) {
                             const newGenre = {
-                              value: customValue.toLowerCase().replace(/\s+/g, "-"),
-                              label: customValue.trim(),
+                              value: customValue.trim(), // Keep original formatting
+                              label: customValue.trim(), // Keep original formatting
                             };
                             const currentGenres = Array.isArray(field.value)
                               ? [...field.value]
@@ -1121,10 +1121,8 @@ const Profile = () => {
                           const customValue = prompt("Enter custom venue name:");
                           if (customValue?.trim()) {
                             const newVenue = {
-                              value: customValue
-                                .toLowerCase()
-                                .replace(/\s+/g, "-"),
-                              label: customValue.trim(),
+                              value: customValue.trim(), // Keep original formatting
+                              label: customValue.trim(), // Keep original formatting
                             };
                             const currentVenues = Array.isArray(field.value)
                               ? [...field.value]
@@ -1244,8 +1242,8 @@ const Profile = () => {
                       const customValue = prompt("Enter custom host name:");
                       if (customValue?.trim()) {
                         const newHost = {
-                          value: customValue.toLowerCase().replace(/\s+/g, "-"),
-                          label: customValue.trim(),
+                          value: customValue.trim(), // Keep original formatting
+                          label: customValue.trim(), // Keep original formatting
                         };
                         const currentHosts = Array.isArray(field.value)
                           ? [...field.value]
