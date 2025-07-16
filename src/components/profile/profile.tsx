@@ -44,6 +44,7 @@ const Profile = () => {
   const [logoPreview, setLogoPreview] = useState("");
   const [logoUploading, setLogoUploading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasRemovedLogo, setHasRemovedLogo] = useState(false);
 
   const navigate = useNavigate();
 
@@ -114,6 +115,7 @@ const Profile = () => {
 
             const data = await response.json();
             setLogoUrl(data.secure_url);
+            setHasRemovedLogo(false);
             toast.success("Logo uploaded successfully!");
           } catch (error) {
             console.error("Failed to upload logo:", error);
@@ -134,6 +136,7 @@ const Profile = () => {
   const removeLogo = () => {
     setLogoUrl("");
     setLogoPreview("");
+    setHasRemovedLogo(true);
   };
 
   // Helper function to generate SHA-1 signature
@@ -248,9 +251,26 @@ const Profile = () => {
         youtube: profileData.user.socialMediaLinks?.youtube || "",
       };
 
-      if (profileData.user.profilePhoto) {
-        setLogoUrl(profileData.user.profilePhoto);
-        setLogoPreview(profileData.user.profilePhoto);
+      console.log("Profile photo from API:", profileData.user.profilePhoto);
+      
+      const profilePhoto = profileData.user.profilePhoto;
+      const isDummyImage = profilePhoto && (
+        profilePhoto.includes("default") || 
+        profilePhoto.includes("placeholder") || 
+        profilePhoto.includes("dummy") ||
+        profilePhoto.includes("blank-profile-picture") ||
+        profilePhoto.includes("pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png")
+      );
+      
+      if (profilePhoto && profilePhoto.trim() !== "" && !isDummyImage) {
+        setLogoUrl(profilePhoto);
+        setLogoPreview(profilePhoto);
+        setHasRemovedLogo(false);
+      } else {
+        // No profile photo, empty string, or dummy image
+        setLogoUrl("");
+        setLogoPreview("");
+        setHasRemovedLogo(true);
       }
 
       reset(formData);
@@ -258,7 +278,21 @@ const Profile = () => {
   }, [profileData, reset, venues, performers]);
 
   const onSubmit = async (data: any) => {
-    if (!logoUrl) {
+    console.log("Submitting form with logoUrl:", logoUrl);
+    console.log("logoPreview:", logoPreview);
+    console.log("hasRemovedLogo:", hasRemovedLogo);
+    
+    // Check if profile image is required
+    const isValidProfilePhoto = logoUrl && 
+                               logoUrl.trim() !== "" && 
+                               !hasRemovedLogo && 
+                               !logoUrl.includes("default") && 
+                               !logoUrl.includes("placeholder") &&
+                               !logoUrl.includes("dummy") &&
+                               !logoUrl.includes("blank-profile-picture") &&
+                               !logoUrl.includes("pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png");
+    
+    if (!isValidProfilePhoto) {
       toast.error("Profile image is required");
       return;
     }
@@ -1352,16 +1386,21 @@ const Profile = () => {
           {/* Upload Logo */}
           <div className="w-full max-w-[782px] bg-black p-4">
             <h2 className="font-['Space_Grotesk'] text-white text-[20px] leading-[100%] mb-4">
-              Profile Picture
+              Profile Picture*
             </h2>
             <p className="text-[#FF00A2] text-sm mb-2 font-['Space_Grotesk']">
               For best results, your profile picture should be 350x450px. Other sizes may not display as expected.
             </p>
+            {(!logoUrl || hasRemovedLogo || (logoUrl && (logoUrl.includes("default") || logoUrl.includes("placeholder") || logoUrl.includes("dummy") || logoUrl.includes("blank-profile-picture") || logoUrl.includes("pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png")))) && isEditing && (
+              <p className="text-red-500 text-sm mb-2 font-['Space_Grotesk']">
+                Profile picture is required
+              </p>
+            )}
 
             <div
               className={`bg-[#0D0D0D] rounded-[16px] px-8 py-3 text-center ${
                 isEditing ? "cursor-pointer hover:bg-[#1A1A1A]" : ""
-              }`}
+              } ${(!logoUrl || hasRemovedLogo || (logoUrl && (logoUrl.includes("default") || logoUrl.includes("placeholder") || logoUrl.includes("dummy") || logoUrl.includes("blank-profile-picture") || logoUrl.includes("pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png")))) && isEditing ? "border-2 border-red-500" : ""}`}
               onClick={handleLogoUpload}
             >
               {logoPreview ? (
@@ -1369,7 +1408,7 @@ const Profile = () => {
                   <div className="relative ">
                     <img
                       src={logoPreview}
-                      alt="Venue Logo"
+                      alt="Profile Picture"
                       className="w-36 h-36 object-cover mb-4 "
                     />
                     {isEditing && (
