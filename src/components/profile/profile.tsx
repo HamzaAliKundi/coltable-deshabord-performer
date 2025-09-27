@@ -398,7 +398,7 @@ const Profile = () => {
                 </svg>
               </div>
               <p className="font-['Space_Grotesk'] text-[16px] leading-[140%]">
-              Go ahead and complete that profile—give the world a reason to stare! Once you hit submit, we'll take a moment to review and make sure everything's giving authentic excellence and not hot mess express. Keep it classy: no indecent language, no fighting words, and definitely no "oops, I forgot my clothes" moments. Serve face, not disgrace.
+              Go ahead and complete that profile—give the world a reason to stare! Once you hit submit, we'll take a moment to review and make sure everything's giving authentic excellence and not hot mess express. Keep it classy: no indecent language, no fighting words, and definitely no "oops, I forgot my clothes" moments. Serve face, not disgrace...
               </p>
             </div>
           </div>
