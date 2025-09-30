@@ -114,7 +114,7 @@ const Events = () => {
             }`}
             onClick={() => handleTabChange("confirmRequest")}
           >
-            Confirmed Request
+            Confirmed Request.
             {activeTab === "confirmRequest" && (
               <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FF00A2]"></div>
             )}

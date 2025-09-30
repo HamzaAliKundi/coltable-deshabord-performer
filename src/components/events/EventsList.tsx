@@ -66,21 +66,9 @@ const EventsList: React.FC<EventsListProps> = ({
   >(null);
 
   const formatDate = (dateString: string) => {
-    let date = new Date(dateString);
-    // Handle midnight UTC case
-    if (
-      date.getUTCHours() === 0 &&
-      date.getUTCMinutes() === 0 &&
-      date.getUTCSeconds() === 0
-    ) {
-      const localDate = new Date(date);
-      const localDay = localDate.getDate();
-      const utcDay = date.getUTCDate();
-      if (localDay < utcDay) {
-        localDate.setDate(localDate.getDate() + 1);
-        date = localDate;
-      }
-    }
+    // Use UTC methods to prevent timezone conversion
+    const date = new Date(dateString);
+    const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -89,26 +77,13 @@ const EventsList: React.FC<EventsListProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     };
-    return date.toLocaleDateString("en-US", options);
+    return utcDate.toLocaleDateString("en-US", options);
   };
 
   const extractTime = (dateString: string) => {
-    let date = new Date(dateString);
-    // Handle midnight UTC case
-    if (
-      date.getUTCHours() === 0 &&
-      date.getUTCMinutes() === 0 &&
-      date.getUTCSeconds() === 0
-    ) {
-      const localDate = new Date(date);
-      const localDay = localDate.getDate();
-      const utcDay = date.getUTCDate();
-      if (localDay < utcDay) {
-        localDate.setDate(localDate.getDate() + 1);
-        date = localDate;
-      }
-    }
-
+    // Simply extract the time components from startTime (ignore the date part)
+    const date = new Date(dateString);
+    
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
@@ -185,10 +160,17 @@ const EventsList: React.FC<EventsListProps> = ({
               />
               <div className="absolute top-3 left-3 w-[70px] h-[70px] bg-gradient-to-b from-[#FF00A2] to-[#D876B5] rounded-full flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-[#e3d4de] leading-none">
-                  {formatDate(event.startDate)?.replace(",", "").slice(3, 6)}
+                  {(() => {
+                    const date = new Date(event.startDate);
+                    return date.getUTCDate();
+                  })()}
                 </span>
                 <span className="text-lg font-semibold text-[#ebd4e3] uppercase leading-none">
-                  {formatDate(event.startDate)?.slice(0, 3)}
+                  {(() => {
+                    const date = new Date(event.startDate);
+                    const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+                    return utcDate.toLocaleDateString("en-US", { month: "short" }).slice(0, 3);
+                  })()}
                 </span>
               </div>
             </div>
