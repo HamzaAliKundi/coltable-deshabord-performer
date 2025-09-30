@@ -40,21 +40,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
   };
 
   const formatDate = (dateString: any) => {
-    let date = new Date(dateString);
-    // Handle midnight UTC case
-    if (
-      date.getUTCHours() === 0 &&
-      date.getUTCMinutes() === 0 &&
-      date.getUTCSeconds() === 0
-    ) {
-      const localDate = new Date(date);
-      const localDay = localDate.getDate();
-      const utcDay = date.getUTCDate();
-      if (localDay < utcDay) {
-        localDate.setDate(localDate.getDate() + 1);
-        date = localDate;
-      }
-    }
+    // Use UTC methods to prevent timezone conversion
+    const date = new Date(dateString);
+    const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -63,26 +51,13 @@ const EventDetail: React.FC<EventDetailProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     };
-    return date.toLocaleDateString("en-US", options);
+    return utcDate.toLocaleDateString("en-US", options);
   };
 
   const extractTime = (dateString: any) => {
-    let date = new Date(dateString);
-    // Handle midnight UTC case
-    if (
-      date.getUTCHours() === 0 &&
-      date.getUTCMinutes() === 0 &&
-      date.getUTCSeconds() === 0
-    ) {
-      const localDate = new Date(date);
-      const localDay = localDate.getDate();
-      const utcDay = date.getUTCDate();
-      if (localDay < utcDay) {
-        localDate.setDate(localDate.getDate() + 1);
-        date = localDate;
-      }
-    }
-
+    // Simply extract the time components from startTime (ignore the date part)
+    const date = new Date(dateString);
+    
     let hours = date.getHours();
     let minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
