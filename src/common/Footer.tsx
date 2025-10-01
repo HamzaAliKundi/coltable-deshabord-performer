@@ -26,32 +26,6 @@ const Footer = () => {
                 <img src="/footer/phone.png" />1 (844) 713-DRAG (3724)
               </p>
             </div>
-            <h3 className="mt-12 text-[24px] font-bold capitalize">
-            Check Out Our Socials!
-          </h3>
-          <div className="flex gap-4 mt-2">
-            <a href="https://www.facebook.com/profile.php?id=61574105501530" target="_blank" rel="noopener noreferrer">
-              <img
-                src="/footer/facebook.png"
-                alt="Facebook"
-                className="w-[9.98px] h-[27px] cursor-pointer"
-              />
-            </a>
-            <a href="https://x.com/Yourdragspace" target="_blank" rel="noopener noreferrer">
-              <img
-                src="/footer/twitter.png"
-                alt="Twitter"
-                className="w-[18.61px] h-[27px] cursor-pointer"
-              />
-            </a>
-            <a href="https://www.instagram.com/officialdragspace" target="_blank" rel="noopener noreferrer">
-              <img
-                src="/footer/instagram.png"
-                alt="Instagram"
-                className="w-[16.36px] h-[27px] cursor-pointer"
-              />
-            </a>
-          </div>
           </div>
   
           {/* Useful Links */}
@@ -91,48 +65,41 @@ const Footer = () => {
             </ul>
           </div>
   
-          {/* Instagram Section */}
+          {/* Social Media Links */}
           <div>
-            <h3 className="text-xl font-bold">Instagram</h3>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <img
-                src="/footer/insta1.png"
-                width={110}
-                height={103}
-                alt="Instagram 1"
-              />
-              <img
-                src="/footer/insta2.png"
-                width={110}
-                height={103}
-                alt="Instagram 2"
-              />
-              <img
-                src="/footer/insta3.png"
-                width={110}
-                height={103}
-                alt="Instagram 3"
-              />
-              <img
-                src="/footer/insta4.png"
-                width={110}
-                height={103}
-                alt="Instagram 4"
-              />
-              <img
-                src="/footer/insta5.png"
-                width={110}
-                height={103}
-                alt="Instagram 5"
-              />
-              <img
-                src="/footer/insta6.png"
-                width={110}
-                height={103}
-                alt="Instagram 6"
-              />
+            <h3 className="text-xl font-bold">Check out our Socials!</h3>
+            <div className="mt-4 space-y-4">
+              <a href="https://www.instagram.com/officialdragspace" target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-300 hover:text-[#FF00A2] transition-colors">
+                <div className="w-[24px] flex justify-center mr-3">
+                  <img
+                    src="/footer/instagram.png"
+                    alt="Instagram"
+                    className="w-[16.36px] h-[27px]"
+                  />
+                </div>
+                <span className="text-sm">Follow us on Instagram</span>
+              </a>
+              <a href="https://www.facebook.com/profile.php?id=61574105501530" target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-300 hover:text-[#FF00A2] transition-colors">
+                <div className="w-[24px] flex justify-center mr-3">
+                  <img
+                    src="/footer/facebook.png"
+                    alt="Facebook"
+                    className="w-[9.98px] h-[27px]"
+                  />
+                </div>
+                <span className="text-sm">Like us on Facebook</span>
+              </a>
+              <a href="https://x.com/Yourdragspace" target="_blank" rel="noopener noreferrer" className="flex items-center text-gray-300 hover:text-[#FF00A2] transition-colors">
+                <div className="w-[24px] flex justify-center mr-3">
+                  <img
+                    src="/footer/twitter.png"
+                    alt="Twitter"
+                    className="w-[18.61px] h-[27px]"
+                  />
+                </div>
+                <span className="text-sm">Follow us on Twitter</span>
+              </a>
             </div>
-            <p className="mt-4 text-sm">Follow Our Instagram</p>
           </div>
         </div>
         <div className="mt-8 py-4">
