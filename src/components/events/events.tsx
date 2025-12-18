@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   useGetAllEventsQuery,
@@ -13,14 +13,15 @@ const Events = () => {
     "eventRequest" | "pendingRequest" | "confirmRequest"
   >("eventRequest");
 
+  // Fetch ALL events (no pagination) to sort them properly
   const {
     data: pendingConfirmedEventsData,
     isLoading: isPendingConfirmedLoading,
     isFetching: isPendingConfirmedFetching,
   } = useGetAllEventsQuery(
     {
-      limit: eventsPerPage,
-      page: currentPage,
+      limit: 10000, // Fetch all events
+      page: 1,
       status:
         activeTab === "pendingRequest"
           ? "pending"
@@ -40,8 +41,8 @@ const Events = () => {
     refetch: refetchVenueRequest,
   } = useGetAllPerformerEventsQuery(
     {
-      limit: eventsPerPage,
-      page: currentPage,
+      limit: 10000, // Fetch all events
+      page: 1,
     },
     {
       skip: activeTab !== "eventRequest",
@@ -61,8 +62,65 @@ const Events = () => {
   };
 
   const currentData = getCurrentData();
-  const events = currentData?.docs || [];
-  const totalPages = currentData?.totalPages || 0;
+  const rawEvents = Array.isArray(currentData?.docs) ? currentData.docs : [];
+
+  // Sort ALL events: future events first, then past events
+  // Then paginate client-side
+  const sortedEvents = useMemo(() => {
+    if (!rawEvents.length) return [];
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Set to start of today for comparison
+
+    // Separate future and past events
+    const futureEvents: typeof rawEvents = [];
+    const pastEvents: typeof rawEvents = [];
+
+    rawEvents.forEach((event: any) => {
+      if (!event.startDate) {
+        // If no startDate, treat as past event
+        pastEvents.push(event);
+        return;
+      }
+
+      const eventDate = new Date(event.startDate);
+      eventDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
+
+      if (eventDate >= now) {
+        futureEvents.push(event);
+      } else {
+        pastEvents.push(event);
+      }
+    });
+
+    // Sort future events by startDate ascending (earliest first)
+    futureEvents.sort((a: any, b: any) => {
+      if (!a.startDate || !b.startDate) return 0;
+      return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+    });
+
+    // Sort past events by startDate descending (most recent first)
+    pastEvents.sort((a: any, b: any) => {
+      if (!a.startDate || !b.startDate) return 0;
+      return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    });
+
+    // Combine: future events first, then past events
+    return [...futureEvents, ...pastEvents];
+  }, [rawEvents]);
+
+  // Calculate total pages for client-side pagination
+  const totalPages = useMemo(() => {
+    return Math.ceil(sortedEvents.length / eventsPerPage);
+  }, [sortedEvents, eventsPerPage]);
+
+  // Paginate the sorted events client-side
+  const events = useMemo(() => {
+    if (!Array.isArray(sortedEvents)) return [];
+    const startIndex = (currentPage - 1) * eventsPerPage;
+    const endIndex = startIndex + eventsPerPage;
+    return sortedEvents.slice(startIndex, endIndex);
+  }, [sortedEvents, currentPage, eventsPerPage]);
 
   const isLoading =
     (activeTab === "eventRequest" &&
@@ -114,7 +172,7 @@ const Events = () => {
             }`}
             onClick={() => handleTabChange("confirmRequest")}
           >
-            Confirmed Request.
+            Confirmed Request
             {activeTab === "confirmRequest" && (
               <div className="absolute bottom-0 left-0 w-full h-1 bg-[#FF00A2]"></div>
             )}

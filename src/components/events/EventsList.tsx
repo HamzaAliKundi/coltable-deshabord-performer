@@ -55,7 +55,7 @@ const EventsList: React.FC<EventsListProps> = ({
   const [expandedTitle, setExpandedTitle] = React.useState<string | null>(null);
   const navigate = useNavigate();
   const [deleteEvent] = useDeleteEventMutation();
-  const { refetch } = useGetAllEventsQuery({ limit: 10, page: currentPage });
+  const { refetch } = useGetAllEventsQuery({ limit: 10, page: currentPage, status: undefined });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [updatePerformerEventStatus] = useUpdatePerformerEventStatusMutation();
@@ -140,14 +140,17 @@ const EventsList: React.FC<EventsListProps> = ({
     );
   }
 
-  if (!events.length) {
+  // Ensure events is always an array
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  if (!safeEvents.length) {
     return <div className="text-center text-white py-8">No events found</div>;
   }
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {events.map((event) => (
+        {safeEvents.map((event) => (
           <div
             key={event._id}
             className="bg-[#212121] mt-7 rounded-[8px] overflow-hidden w-full max-w-[300px] flex flex-col"

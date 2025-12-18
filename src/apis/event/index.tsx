@@ -36,17 +36,30 @@ export const eventsApi = createApi({
     }),
 
     getAllEvents: builder.query({
-      query: ({ limit, page, status }) => ({
-        url: `/api/performer/event/get-all-events?limit=${limit}&page=${page}&status=${status}`,
-        method: "GET",
-      }),
+      query: (params = {}) => {
+        const { limit = 10, page = 1, status } = params;
+        const queryParams = new URLSearchParams({
+          limit: limit.toString(),
+          page: page.toString(),
+        });
+        if (status) {
+          queryParams.append('status', status);
+        }
+        return {
+          url: `/api/performer/event/get-all-events?${queryParams.toString()}`,
+          method: "GET",
+        };
+      },
     }),
 
     getAllPerformerEvents: builder.query({
-      query: ({ limit, page }) => ({
-        url: `/api/performer/event/get-all-performer-events?limit=${limit}&page=${page}`,
-        method: "GET",
-      }),
+      query: (params = {}) => {
+        const { limit = 10, page = 1 } = params;
+        return {
+          url: `/api/performer/event/get-all-performer-events?limit=${limit}&page=${page}`,
+          method: "GET",
+        };
+      },
     }),
 
     getEventById: builder.query({
