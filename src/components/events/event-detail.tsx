@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Anchor, Omega } from "lucide-react";
 import { eventOptions } from "../../utils/create-event/dropDownData";
+import { linkifyText } from "../../utils/linkify.tsx";
 
 interface EventDetailProps {
   eventId: string | undefined;
@@ -143,9 +144,9 @@ const EventDetail: React.FC<EventDetailProps> = ({
                   Description:
                 </h2>
               </div>
-              <p className="font-['Space_Grotesk'] text-white ml-7">
-                {event?.description}
-              </p>
+              <div className="font-['Space_Grotesk'] text-white ml-7">
+                {event?.description ? linkifyText(event.description) : "N/A"}
+              </div>
             </div>
           </div>
 

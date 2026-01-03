@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { useAddImagesMutation, useGetAllImagesQuery, useDeleteImageMutation } from '../../apis/media'
 import toast from 'react-hot-toast'
+import { isVideo, getVideoAcceptTypes } from '../../utils/videoDetection'
 
 const MAX_IMAGES = 10;
 
@@ -181,14 +182,14 @@ const Media = () => {
                         {!item.isApi && (
                             <input
                                 type="file"
-                                accept="image/jpeg,image/png,image/gif,video/mp4,video/quicktime"
+                                accept={`image/jpeg,image/png,image/gif,${getVideoAcceptTypes()}`}
                                 style={{ display: 'none' }}
                                 ref={el => fileInputRefs.current[index - apiImages.length] = el}
                                 onChange={e => handleFileChange(e, index)}
                             />
                         )}
                         {item.image ? (
-                            item.image.match(/\.(mp4|mov|webm)$/i) ? (
+                            isVideo(item.image) ? (
                                 <video src={item.image} className="w-full h-full object-cover" controls />
                             ) : (
                                 <img src={item.image} alt="media" className="w-full h-full object-cover" />

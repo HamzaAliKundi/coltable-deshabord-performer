@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useGetEventByIdQuery } from "../../apis/event";
+import { linkifyText } from "../../utils/linkify.tsx";
 
 export const outdoorCoveringOptions = [
   { label: "Indoor Stage", value: "indoor_stage" },
@@ -257,18 +258,18 @@ const EventRequestDetail = () => {
           <h3 className="text-white border-b-[3px] border-[#FF00A2] mb-3 pb-1 text-lg">
             Description & Special Request
           </h3>
-          <p className="text-white/90">
-            <span className="font-medium">Description:</span>{" "}
-            <span dangerouslySetInnerHTML={{ 
-              __html: (getEventsByVenuesById?.event?.description || "N/A").replace(/\n/g, '<br>') 
-            }} />
-          </p>
-          <p className="text-white/90">
-            <span className="font-medium">Special Request For Performer:</span>{" "}
-            <span dangerouslySetInnerHTML={{ 
-              __html: (getEventsByVenuesById?.event?.specialRequirements || "N/A").replace(/\n/g, '<br>') 
-            }} />
-          </p>
+          <div className="text-white/90">
+            <p className="font-medium">Description:</p>
+            <div className="mt-1">
+              {linkifyText(getEventsByVenuesById?.event?.description || "N/A")}
+            </div>
+          </div>
+          <div className="text-white/90 mt-4">
+            <p className="font-medium">Special Request For Performer:</p>
+            <div className="mt-1">
+              {linkifyText(getEventsByVenuesById?.event?.specialRequirements || "N/A")}
+            </div>
+          </div>
         </div>
       )}
     </div>
