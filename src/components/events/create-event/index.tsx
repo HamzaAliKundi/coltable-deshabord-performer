@@ -220,32 +220,25 @@ const CreateEvent = () => {
   }, [eventResponse, id, reset]);
 
   const onSubmit = async (data: EventFormData) => {
-  if (!logoUrl.trim()) {
+    if (!logoUrl.trim()) {
       setIsLogoError(true);
       setLogoError("Flier is required");
       return;
     }
 
     try {
-      const startDate = new Date(data.startDate);
-      const startTime = new Date(startDate);
-      const endTime = new Date(startDate);
+      // Same approach as admin: send raw date/time strings + timezone; backend converts to UTC
+      const performerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Karachi";
 
-      const [startHours, startMinutes] = data.startTime.split(":").map(Number);
-      const [endHours, endMinutes] = data.endTime.split(":").map(Number);
-
-      startTime.setHours(startHours, startMinutes, 0, 0);
-      endTime.setHours(endHours, endMinutes, 0, 0);
-
-      // Send names (labels) for hosts, but IDs (values) for performers
       const processedHosts = data.host ? data.host.map((h) => h.label) : [];
       const processedPerformers = data.performers ? data.performers.map((p) => p.value) : [];
 
       const eventData = {
         ...data,
-        startDate: startDate.toISOString(),
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startDate: data.startDate, // "YYYY-MM-DD"
+        startTime: data.startTime, // "HH:mm"
+        endTime: data.endTime,     // "HH:mm"
+        performerTimezone,
         image: logoUrl,
         address: data.eventLocation,
         isPrivate: data.isPrivate,
