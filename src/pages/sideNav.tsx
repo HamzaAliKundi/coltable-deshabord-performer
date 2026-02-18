@@ -79,9 +79,9 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
 
   const handleLogout = () => {
     setIsLoggingOut(true);
-    resetApiCachesOnLogout();
     setTimeout(() => {
       localStorage.removeItem("token");
+      resetApiCachesOnLogout();
       setIsLogoutModalOpen(false);
       setIsLoggingOut(false);
       navigate("/");
