@@ -65,28 +65,41 @@ const Events = () => {
   const rawEvents = Array.isArray(currentData?.docs) ? currentData.docs : [];
 
   // Sort ALL events: future events first, then past events
-  // Then paginate client-side
+  // Use UTC date comparison so that events stored as UTC midnight (e.g. 17 Feb 00:00Z)
+  // are treated as "today" when today's date in UTC is 17 Feb, not excluded as past.
   const sortedEvents = useMemo(() => {
     if (!rawEvents.length) return [];
 
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Set to start of today for comparison
+    const startOfTodayUTC = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0)
+    );
 
-    // Separate future and past events
+    // Separate future and past events (past = strictly before today in UTC)
     const futureEvents: typeof rawEvents = [];
     const pastEvents: typeof rawEvents = [];
 
     rawEvents.forEach((event: any) => {
       if (!event.startDate) {
-        // If no startDate, treat as past event
         pastEvents.push(event);
         return;
       }
 
       const eventDate = new Date(event.startDate);
-      eventDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
+      const eventDateUTC = new Date(
+        Date.UTC(
+          eventDate.getUTCFullYear(),
+          eventDate.getUTCMonth(),
+          eventDate.getUTCDate(),
+          0,
+          0,
+          0,
+          0
+        )
+      );
 
-      if (eventDate >= now) {
+      // Today and future = upcoming; before today = past
+      if (eventDateUTC >= startOfTodayUTC) {
         futureEvents.push(event);
       } else {
         pastEvents.push(event);
