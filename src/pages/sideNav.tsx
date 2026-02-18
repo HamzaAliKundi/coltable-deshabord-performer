@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
+import { resetApiCachesOnLogout } from "../store";
 import { useGetTotalUnreadCountQuery } from "../apis/messages";
 import io from 'socket.io-client';
 import { useGetPerformerProfileQuery } from "../apis/profile";
@@ -78,6 +79,7 @@ const SideNav = ({ isSidebarOpen, toggleSidebar }: SideNavProps) => {
 
   const handleLogout = () => {
     setIsLoggingOut(true);
+    resetApiCachesOnLogout();
     setTimeout(() => {
       localStorage.removeItem("token");
       setIsLogoutModalOpen(false);

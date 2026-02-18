@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
+import { resetApiCachesOnLogout } from "../store";
 
 interface NavbarProps {
   isSidebarOpen: boolean;
@@ -15,6 +16,7 @@ export default function Navbar({ isSidebarOpen, toggleSidebar }: NavbarProps) {
 
   const handleLogout = () => {
     setIsLoggingOut(true);
+    resetApiCachesOnLogout();
     setTimeout(() => {
       localStorage.removeItem("token");
       setIsLogoutModalOpen(false);

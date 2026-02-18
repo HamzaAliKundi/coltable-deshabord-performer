@@ -19,3 +19,13 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(authApi.middleware, eventsApi.middleware, profileApi.middleware, reviewsApi.middleware, messagesApi.middleware, mediaApi.middleware),
 });
+
+/** Clear all RTK Query caches on logout so the next user does not see previous user's data */
+export const resetApiCachesOnLogout = () => {
+  store.dispatch(eventsApi.util.resetApiState());
+  store.dispatch(authApi.util.resetApiState());
+  store.dispatch(profileApi.util.resetApiState());
+  store.dispatch(reviewsApi.util.resetApiState());
+  store.dispatch(messagesApi.util.resetApiState());
+  store.dispatch(mediaApi.util.resetApiState());
+};
